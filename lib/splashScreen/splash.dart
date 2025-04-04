@@ -1,51 +1,64 @@
-import 'package:erp/bottomScreen/bottom.dart';
-import 'package:erp/login/Login.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
+// import 'package:erp/aftersplash/login.dart';
+// import 'package:erp/bottomScreen/bottomemployee.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:sizer/sizer.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+// class SplashScreen extends StatefulWidget {
+//   const SplashScreen({super.key});
 
-  @override
-  _SplashScreenState createState() => _SplashScreenState();
-}
+//   @override
+//   _SplashScreenState createState() => _SplashScreenState();
+// }
 
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    
-    Future.delayed(Duration(seconds: 3), () {
-      User? user = FirebaseAuth.instance.currentUser;
+// class _SplashScreenState extends State<SplashScreen> {
+//   @override
+//   void initState() {
+//     super.initState();
 
-      if (user != null) {
-        // User is already logged in, navigate to BottomNavigationBarWidget
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => BottomNavigationBarWidget()),
-        );
-      } else {
-        // No user logged in, navigate to LoginScreen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => LoginScreen()),
-        );
-      }
-    });
-  }
+//     Future.delayed(Duration(seconds: 3), () {
+//       User? user = FirebaseAuth.instance.currentUser;
+// try {
+//         // Check Manager collection
+//         DocumentSnapshot managerDoc = await _firestore
+//             .collection("Manager")
+//             .doc(user.uid)
+//             .get();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Image.asset(
-          'assets/4.webp',  // Fullscreen image
-          fit: BoxFit.fill,  // Set image to cover entire screen
-          height: 50.h,
-          width: double.infinity,
-        ),
-      ),
-    );
-  }
-}
+//         if (managerDoc.exists && managerDoc.get("role") == "Manager") {
+//           return const bottommanager();
+//         }
+
+//         // Check users (Employee) collection
+//         DocumentSnapshot employeeDoc = await _firestore
+//             .collection("users")
+//             .doc(user.uid)
+//             .get();
+
+//         if (employeeDoc.exists && employeeDoc.get("role") == "Employee") {
+//           return const BottomNavigationBarWidget();
+//         }
+//       } catch (e) {
+//         print("Error checking role: $e");
+//       }
+//     }
+//     // If no user or role not found, show login screen
+//     return const Loginboth();
+//   }
+//     });
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: Center(
+//         child: Image.asset(
+//           'assets/4.webp',  
+//           fit: BoxFit.cover, // Better scaling
+//           height: 30.h,
+//           width: double.infinity,
+//         ),
+//       ),
+//     );
+//   }
+// }

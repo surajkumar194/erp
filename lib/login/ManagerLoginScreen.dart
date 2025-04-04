@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/bottomScreen/bottomemployee.dart';
-import 'package:erp/login/signup.dart';
+import 'package:erp/bottomScreen/bottommanager.dart';
+import 'package:erp/login/ManagerSignupScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
-class EmpoyeeLoginScreen extends StatefulWidget {
-  const EmpoyeeLoginScreen({super.key});
+class ManagerLoginScreen extends StatefulWidget {
+  const ManagerLoginScreen({super.key});
 
   @override
-  State<EmpoyeeLoginScreen> createState() => _EmpoyeeLoginScreenState();
+  State<ManagerLoginScreen> createState() => _ManagerLoginScreenState();
 }
 
-class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
+class _ManagerLoginScreenState extends State<ManagerLoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -57,61 +57,65 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
 
       // Check user's role from Firestore
       DocumentSnapshot userDoc = await _firestore
-          .collection("users")
+          .collection("Manager")
           .doc(userCredential.user!.uid)
           .get();
 
       if (!userDoc.exists) {
-        DocumentSnapshot managerDoc = await _firestore
-            .collection("Manager")
+        // Check if user exists in employees collection
+        DocumentSnapshot employeeDoc = await _firestore
+            .collection("users")
             .doc(userCredential.user!.uid)
             .get();
-        
-        if (managerDoc.exists) {
+
+        if (employeeDoc.exists) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Managers cannot log in to Employee portal."),
+              content: Text("Employees cannot log in to Manager portal."),
               backgroundColor: Colors.red,
+            ),
+          );
+          await _auth.signOut(); // Sign out the employee
+          return;
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Manager account not found. Please sign up."),
+              backgroundColor: Colors.black,
+              action: SnackBarAction(
+                label: 'Sign Up',
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ManagerSignupScreen()),
+                  );
+                },
+              ),
             ),
           );
           await _auth.signOut();
           return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Email not found. Please signup first.", style: TextStyle(fontSize: 18.sp)),
-            backgroundColor: Colors.black,
-            action: SnackBarAction(
-              label: 'Sign Up',
-              textColor: Colors.white,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SignupScreen()),
-                );
-              },
-            ),
-          ),
-        );
-        await _auth.signOut();
-        return;
       }
 
+      // Get role from document
       String role = userDoc.get("role");
-      if (role != "Employee") {
+
+      if (role != "Manager") {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Only employees can access this portal."),
+            content: Text("Only managers can access this portal."),
             backgroundColor: Colors.red,
           ),
         );
-        await _auth.signOut();
+        await _auth.signOut(); // Sign out if not a manager
         return;
       }
 
-      // If all checks pass, navigate to employee dashboard
+      // If all checks pass, navigate to manager dashboard
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => BottomNavigationBarWidget()));
+          context, MaterialPageRoute(builder: (context) => bottommanager()));
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
@@ -151,7 +155,7 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Employee Login", style: TextStyle(fontSize: 18.sp)),
+        title: Text("Manager Login", style: TextStyle(fontSize: 18.sp)),
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
@@ -163,8 +167,6 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
             children: [
               Image.asset("assets/4.webp", height: 18.h, fit: BoxFit.contain),
               SizedBox(height: 2.h),
-          
-              // Email Input
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -174,8 +176,6 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
                 ),
               ),
               SizedBox(height: 2.h),
-          
-              // Password Input
               TextField(
                 controller: _passwordController,
                 obscureText: !_isPasswordVisible,
@@ -196,8 +196,6 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
                 ),
               ),
               SizedBox(height: 4.h),
-          
-              // Login Button
               SizedBox(
                 width: double.infinity,
                 height: 6.h,
@@ -232,14 +230,12 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
                 ),
               ),
               SizedBox(height: 2.h),
-          
-              // Navigate to Sign-Up Screen
               TextButton(
                 onPressed: () {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const SignupScreen()));
+                          builder: (context) => const ManagerSignupScreen()));
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

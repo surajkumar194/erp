@@ -1,4 +1,4 @@
- buildscript {
+buildscript {
     ext.kotlin_version = '1.9.0' // Define Kotlin version to be used
     repositories {
         google()        // Google repository to fetch dependencies

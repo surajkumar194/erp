@@ -1,13 +1,11 @@
 import 'package:erp/screen/Profile.dart';
-import 'package:erp/screen/home.dart';
 import 'package:erp/screen/targets.dart';
 import 'package:erp/screen/work.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 class BottomNavigationBarWidget extends StatefulWidget {
-
-  const BottomNavigationBarWidget({super.key,  });
+  const BottomNavigationBarWidget({super.key});
 
   @override
   _BottomNavigationBarWidgetState createState() =>
@@ -18,10 +16,17 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   int _currentIndex = 0;
 
   List<Widget> get _pages => [
-        Home(),
-        MyWork() ,
-        Targets(),
+       // Home(),
+       EmployeeProfile(employeeId: '',),
+      TaskScreen(),
         Profile(),
+      ];
+
+  List<String> get _titles => [
+      //  "Home",
+        "My Work",
+        "Targets",
+        "Profile",
       ];
 
   void _onDrawerItemSelected(int index) {
@@ -38,7 +43,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         backgroundColor: Color(0xffF1E9D2),
         elevation: 0,
         title: Text(
-          "Home",
+          _titles[_currentIndex],
           style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600, color: Colors.black),
         ),
         centerTitle: true,
@@ -68,25 +73,25 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
                 ],
               ),
             ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () => _onDrawerItemSelected(0),
-            ),
+            // ListTile(
+            //   leading: Icon(Icons.home),
+            //   title: Text('Home'),
+            //   onTap: () => _onDrawerItemSelected(0),
+            // ),
             ListTile(
               leading: Icon(Icons.work),
-              title: Text( 'My Work'),
-              onTap: () => _onDrawerItemSelected(1),
+              title: Text('My Work'),
+              onTap: () => _onDrawerItemSelected(0),
             ),
             ListTile(
               leading: Icon(Icons.business),
               title: Text('Targets'),
-              onTap: () => _onDrawerItemSelected(2),
+              onTap: () => _onDrawerItemSelected(1),
             ),
             ListTile(
               leading: Icon(Icons.person),
               title: Text('Profile'),
-              onTap: () => _onDrawerItemSelected(3),
+              onTap: () => _onDrawerItemSelected(2),
             ),
             Divider(),
             ListTile(
@@ -112,10 +117,10 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         unselectedLabelStyle: TextStyle(fontSize: 17.sp),
         type: BottomNavigationBarType.fixed,
         items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home, size: 21.sp),
-            label: 'Home',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.home, size: 21.sp),
+          //   label: 'Home',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.work, size: 21.sp),
             label: 'My Work',

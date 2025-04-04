@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sizer/sizer.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class editprofilemanager extends StatefulWidget {
   final Function(File?) onImageUpdated;
-  const EditProfileScreen({super.key, required this.onImageUpdated});
+  const editprofilemanager({super.key, required this.onImageUpdated});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  State<editprofilemanager> createState() => _editprofilemanagerState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _editprofilemanagerState extends State<editprofilemanager> {
   File? _image;
   final picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
@@ -28,7 +28,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   bool _isLoading = false;
   String _selectedGender = "Male";
-  String _selectedRole = "Employee";
+  String _selectedRole = "Manager";
 
   @override
   void initState() {
@@ -249,7 +249,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     SizedBox(height: 2.h),
 
-                    _buildDropdown("Role", _selectedRole, [ "Employee"],
+                    _buildDropdown("Role", _selectedRole, ["Manager", ],
                         (value) => setState(() => _selectedRole = value!)),
 
                     SizedBox(height: 2.h),

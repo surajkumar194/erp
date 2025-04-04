@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp/aftersplash/login.dart';
-import 'package:erp/profile/EditProfileScreen.dart';
+import 'package:erp/mamagerscreen/editprofile.dart';
 import 'package:erp/profile/attendance.dart';
 import 'package:erp/splashScreen/Loginboth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,14 +10,19 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sizer/sizer.dart';
 
-class Profile extends StatefulWidget {
-  const Profile({super.key});
+class managerprofile extends StatefulWidget {
+  const managerprofile({super.key});
 
   @override
-  State<Profile> createState() => _ProfileState();
+  State<managerprofile> createState() => _managerprofileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _managerprofileState extends State<managerprofile> {
+
+
+
+
+
   File? _image;
   final picker = ImagePicker();
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -81,7 +86,7 @@ class _ProfileState extends State<Profile> {
     }
   }
 
-  void _showLogoutDialog() {
+ void _showLogoutDialog() {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -274,7 +279,7 @@ class _ProfileState extends State<Profile> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => EditProfileScreen(
+                          builder: (context) => editprofilemanager(
                               onImageUpdated: (File? updatedImage) {
                                 if (updatedImage != null) {
                                   setState(() {

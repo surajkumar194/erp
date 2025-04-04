@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/bottomScreen/bottomemployee.dart';
-import 'package:erp/login/Login.dart';
+import 'package:erp/bottomScreen/bottommanager.dart';
+import 'package:erp/login/ManagerLoginScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+class ManagerSignupScreen extends StatefulWidget {
+  const ManagerSignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<ManagerSignupScreen> createState() => _ManagerSignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _ManagerSignupScreenState extends State<ManagerSignupScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -79,7 +79,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const EmpoyeeLoginScreen()));
+                        builder: (context) => const ManagerLoginScreen()));
               },
             ),
           ),
@@ -93,18 +93,17 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text.trim(),
       );
 
-      await _firestore.collection("users").doc(userCredential.user!.uid).set({
-        "uid": userCredential.user!.uid,
-        "name": _nameController.text.trim(),
-        "email": _emailController.text.trim(),
-        "phone": _phoneController.text.trim(),
-        "role": "Employee", // Fixed role
-        "gender": _selectedGender,
-        "createdAt": FieldValue.serverTimestamp(),
-      });
-
+    await _firestore.collection("Manager").doc(userCredential.user!.uid).set({
+  "uid": userCredential.user!.uid,
+  "name": _nameController.text.trim(),
+  "email": _emailController.text.trim(),
+  "phone": _phoneController.text.trim(),
+  "role": "Manager", // Changed from "Employee" to "Manager"
+  "gender": _selectedGender,
+  "createdAt": FieldValue.serverTimestamp(),
+});
       Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => BottomNavigationBarWidget()));
+          MaterialPageRoute(builder: (context) => bottommanager()));
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
@@ -141,7 +140,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Employee Sign Up", style: TextStyle(fontSize: 18.sp)),
+        title: Text("Sign Up", style: TextStyle(fontSize: 18.sp)),
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
@@ -207,7 +206,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 children: [
                   Text("Role:", style: TextStyle(fontSize: 17.sp)),
                   Text(
-                    "Employee",
+                    "Manager",
                     style:
                         TextStyle(fontSize: 17.sp, fontWeight: FontWeight.bold),
                   ),
@@ -236,39 +235,40 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               SizedBox(height: 2.h),
 
-          SizedBox(
-  width: double.infinity,
-  height: 6.h,
-  child: Container(
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topRight,
-        end: Alignment.bottomLeft,
-        colors: [
-          Color(0xffe7dcc0),
-          Color(0xff013148),
-        ],
-      ),
-      borderRadius: BorderRadius.circular(10.sp),
-    ),
-    child: ElevatedButton(
-      onPressed: _isLoading ? null : _signUp,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.transparent, // Set to transparent
-        shadowColor: Colors.transparent, // Remove button shadow
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.sp),
-        ),
-      ),
-      child: _isLoading
-          ? CircularProgressIndicator(color: Colors.white)
-          : Text(
-              "Sign Up",
-              style: TextStyle(fontSize: 17.sp, color: Colors.white),
-            ),
-    ),
-  ),
-),
+              SizedBox(
+                width: double.infinity,
+                height: 6.h,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [
+                        Color(0xffe7dcc0),
+                        Color(0xff013148),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(10.sp),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _signUp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent, // Set to transparent
+                      shadowColor: Colors.transparent, // Remove button shadow
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.sp),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Sign Up",
+                            style:
+                                TextStyle(fontSize: 17.sp, color: Colors.white),
+                          ),
+                  ),
+                ),
+              ),
 
               SizedBox(height: 2.h),
 
@@ -277,7 +277,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const EmpoyeeLoginScreen()));
+                          builder: (context) => const ManagerLoginScreen()));
                 },
                 child: Text("Already have an account? Login",
                     style:
