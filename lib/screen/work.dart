@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 class EmployeeProfile extends StatefulWidget {
-  final String employeeId;
-
-  const EmployeeProfile({Key? key, required this.employeeId}) : super(key: key);
+  const EmployeeProfile({Key? key}) : super(key: key);
 
   @override
   _EmployeeProfileState createState() => _EmployeeProfileState();
@@ -23,17 +22,29 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
 
   Future<void> fetchEmployeeTasks() async {
     try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('tasks')
-          .where('employeeId', isEqualTo: widget.employeeId)
-          .get();
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        String currentEmployeeName = user.displayName ?? await _getEmployeeNameFromFirestore(user.uid);
 
-      if (querySnapshot.docs.isNotEmpty) {
-        setState(() {
-          tasks = querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-          isLoading = false;
-        });
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('tasks')
+            .where('employee', isEqualTo: currentEmployeeName)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          setState(() {
+            tasks = querySnapshot.docs
+                .map((doc) => doc.data() as Map<String, dynamic>)
+                .toList();
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+        }
       } else {
+        print("User is not logged in");
         setState(() {
           isLoading = false;
         });
@@ -46,10 +57,14 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
     }
   }
 
+  Future<String> _getEmployeeNameFromFirestore(String uid) async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    return doc['name'] ?? "Unknown";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Employee Task")),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : tasks.isEmpty

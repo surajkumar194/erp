@@ -17,7 +17,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
 
   List<Widget> get _pages => [
        // Home(),
-       EmployeeProfile(employeeId: '',),
+       EmployeeProfile(),
       TaskScreen(),
         Profile(),
       ];

@@ -1,6 +1,8 @@
 import 'package:erp/mamagerscreen/home.dart';
+import 'package:erp/mamagerscreen/performance.dart';
 import 'package:erp/mamagerscreen/profile.dart';
-import 'package:erp/screen/targets.dart';
+import 'package:erp/mamagerscreen/tasks.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
@@ -16,13 +18,15 @@ class _bottommanagerState extends State<bottommanager> {
 
   List<Widget> get _pages => [
         MAnagerHome(),
-        TaskScreen(),
+        Tasks(),
+        Performance(),
         managerprofile(),
       ];
 
   List<String> get _titles => [
         "Home",
         "Tasks",
+        "Performance",
         "Profile",
       ];
 
@@ -31,6 +35,41 @@ class _bottommanagerState extends State<bottommanager> {
       _currentIndex = index;
       Navigator.pop(context); // Close the drawer
     });
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    // Navigate to login screen (replace with your login screen widget)
+    // Example: Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Logout", style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Text("Are you sure you want to log out?"),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // Close the dialog
+                await _logout(); // Perform logout
+                // Add navigation to login screen here if needed
+              },
+              child: Text("Logout", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -42,9 +81,10 @@ class _bottommanagerState extends State<bottommanager> {
         title: Text(
           _titles[_currentIndex],
           style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.black),
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
         ),
         centerTitle: true,
       ),
@@ -65,9 +105,10 @@ class _bottommanagerState extends State<bottommanager> {
                   Text(
                     "User Name",
                     style: TextStyle(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                      fontSize: 17.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   Text(
                     "user@example.com",
@@ -82,14 +123,19 @@ class _bottommanagerState extends State<bottommanager> {
               onTap: () => _onDrawerItemSelected(0),
             ),
             ListTile(
-              leading: Icon(Icons.business),
+              leading: Icon(Icons.task),
               title: Text('Tasks'),
               onTap: () => _onDrawerItemSelected(1),
             ),
             ListTile(
+              leading: Icon(Icons.data_thresholding),
+              title: Text('Performance'),
+              onTap: () => _onDrawerItemSelected(2), // Corrected to index 2
+            ),
+            ListTile(
               leading: Icon(Icons.person),
               title: Text('Profile'),
-              onTap: () => _onDrawerItemSelected(2),
+              onTap: () => _onDrawerItemSelected(3), // Corrected to index 3
             ),
             Divider(),
             ListTile(
@@ -120,8 +166,12 @@ class _bottommanagerState extends State<bottommanager> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.business, size: 21.sp),
+            icon: Icon(Icons.task, size: 21.sp),
             label: 'Tasks',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.data_thresholding, size: 21.sp),
+            label: 'Performance',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person, size: 21.sp),
@@ -129,37 +179,6 @@ class _bottommanagerState extends State<bottommanager> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Logout", style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Text("Are you sure you want to log out?"),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
-              child: Text("Cancel", style: TextStyle(color: Colors.grey)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog first
-                // Perform logout action (e.g., navigate to login screen or clear session)
-              },
-              child: Text("Logout",
-                  style: TextStyle(
-                      color: Colors.redAccent, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        );
-      },
     );
   }
 }

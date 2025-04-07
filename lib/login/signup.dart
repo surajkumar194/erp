@@ -22,7 +22,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isPasswordVisible = false;
-  String _selectedGender = "Male"; // Gender is selectable
+  String _selectedGender = "Male";
   bool _isLoading = false;
 
   Future<void> _signUp() async {
@@ -32,8 +32,7 @@ class _SignupScreenState extends State<SignupScreen> {
         _passwordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text("Please fill all the fields",
-                style: TextStyle(fontSize: 18.sp)),
+            content: Text("Please fill all the fields", style: TextStyle(fontSize: 18.sp)),
             backgroundColor: Colors.red),
       );
       return;
@@ -69,8 +68,7 @@ class _SignupScreenState extends State<SignupScreen> {
       if (signInMethods.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text("This email is already registered. Please login instead."),
+            content: Text("This email is already registered. Please login instead."),
             backgroundColor: Colors.orange,
             action: SnackBarAction(
               label: 'Login',
@@ -78,8 +76,7 @@ class _SignupScreenState extends State<SignupScreen> {
               onPressed: () {
                 Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => const EmpoyeeLoginScreen()));
+                    MaterialPageRoute(builder: (context) => const EmpoyeeLoginScreen()));
               },
             ),
           ),
@@ -93,12 +90,15 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text.trim(),
       );
 
+      // Set display name for the user
+      await userCredential.user!.updateDisplayName(_nameController.text.trim());
+
       await _firestore.collection("users").doc(userCredential.user!.uid).set({
         "uid": userCredential.user!.uid,
         "name": _nameController.text.trim(),
         "email": _emailController.text.trim(),
         "phone": _phoneController.text.trim(),
-        "role": "Employee", // Fixed role
+        "role": "Employee",
         "gender": _selectedGender,
         "createdAt": FieldValue.serverTimestamp(),
       });
@@ -109,8 +109,7 @@ class _SignupScreenState extends State<SignupScreen> {
       String errorMessage;
       switch (e.code) {
         case 'email-already-in-use':
-          errorMessage =
-              'This email is already registered. Please login instead';
+          errorMessage = 'This email is already registered. Please login instead';
           break;
         case 'invalid-email':
           errorMessage = 'Invalid email format';
@@ -200,22 +199,17 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               SizedBox(height: 2.h),
-
-              // Fixed role (Employee)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("Role:", style: TextStyle(fontSize: 17.sp)),
                   Text(
                     "Employee",
-                    style:
-                        TextStyle(fontSize: 17.sp, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               SizedBox(height: 2.h),
-
-              // Gender selection dropdown
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -235,43 +229,40 @@ class _SignupScreenState extends State<SignupScreen> {
                 ],
               ),
               SizedBox(height: 2.h),
-
-          SizedBox(
-  width: double.infinity,
-  height: 6.h,
-  child: Container(
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topRight,
-        end: Alignment.bottomLeft,
-        colors: [
-          Color(0xffe7dcc0),
-          Color(0xff013148),
-        ],
-      ),
-      borderRadius: BorderRadius.circular(10.sp),
-    ),
-    child: ElevatedButton(
-      onPressed: _isLoading ? null : _signUp,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.transparent, // Set to transparent
-        shadowColor: Colors.transparent, // Remove button shadow
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.sp),
-        ),
-      ),
-      child: _isLoading
-          ? CircularProgressIndicator(color: Colors.white)
-          : Text(
-              "Sign Up",
-              style: TextStyle(fontSize: 17.sp, color: Colors.white),
-            ),
-    ),
-  ),
-),
-
+              SizedBox(
+                width: double.infinity,
+                height: 6.h,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [
+                        Color(0xffe7dcc0),
+                        Color(0xff013148),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(10.sp),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _signUp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.sp),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Sign Up",
+                            style: TextStyle(fontSize: 17.sp, color: Colors.white),
+                          ),
+                  ),
+                ),
+              ),
               SizedBox(height: 2.h),
-
               TextButton(
                 onPressed: () {
                   Navigator.pushReplacement(
@@ -280,8 +271,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           builder: (context) => const EmpoyeeLoginScreen()));
                 },
                 child: Text("Already have an account? Login",
-                    style:
-                        TextStyle(fontSize: 16.sp, color: Color(0xff120A8F))),
+                    style: TextStyle(fontSize: 16.sp, color: Color(0xff120A8F))),
               ),
             ],
           ),
