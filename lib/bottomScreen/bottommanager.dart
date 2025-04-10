@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp/mamagerscreen/home.dart';
 import 'package:erp/mamagerscreen/performance.dart';
 import 'package:erp/mamagerscreen/profile.dart';
@@ -16,6 +17,13 @@ class bottommanager extends StatefulWidget {
 class _bottommanagerState extends State<bottommanager> {
   int _currentIndex = 0;
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String _name = "";
+  String _email = "";
+  bool _isLoading = false;
+
   List<Widget> get _pages => [
         MAnagerHome(),
         Tasks(),
@@ -30,11 +38,58 @@ class _bottommanagerState extends State<bottommanager> {
         "Profile",
       ];
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
   void _onDrawerItemSelected(int index) {
     setState(() {
       _currentIndex = index;
       Navigator.pop(context); // Close the drawer
     });
+  }
+
+  Future<void> _fetchUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        DocumentSnapshot userDoc =
+            await _firestore.collection("Manager").doc(user.uid).get();
+
+        if (userDoc.exists) {
+          Map<String, dynamic> userData =
+              userDoc.data() as Map<String, dynamic>;
+
+          setState(() {
+            _name = userData["name"] ?? "";
+            _email = userData["email"] ?? "";
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("User data not found")),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("No user logged in")),
+        );
+        Navigator.pop(context); // Return to previous screen if no user
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error fetching user data: $e")),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _logout() async {
@@ -103,16 +158,16 @@ class _bottommanagerState extends State<bottommanager> {
                   ),
                   SizedBox(height: 1.h),
                   Text(
-                    "User Name",
+                    _name.isNotEmpty ? _name : "Loading...",
                     style: TextStyle(
                       fontSize: 17.sp,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Colors.blue,
                     ),
                   ),
                   Text(
-                    "user@example.com",
-                    style: TextStyle(fontSize: 17.sp, color: Colors.white70),
+                    _email.isNotEmpty ? _email : "",
+                    style: TextStyle(fontSize: 17.sp,   color: Colors.blue,),
                   ),
                 ],
               ),
@@ -130,12 +185,12 @@ class _bottommanagerState extends State<bottommanager> {
             ListTile(
               leading: Icon(Icons.data_thresholding),
               title: Text('Performance'),
-              onTap: () => _onDrawerItemSelected(2), // Corrected to index 2
+              onTap: () => _onDrawerItemSelected(2),
             ),
             ListTile(
               leading: Icon(Icons.person),
               title: Text('Profile'),
-              onTap: () => _onDrawerItemSelected(3), // Corrected to index 3
+              onTap: () => _onDrawerItemSelected(3),
             ),
             Divider(),
             ListTile(
@@ -146,7 +201,7 @@ class _bottommanagerState extends State<bottommanager> {
           ],
         ),
       ),
-      body: _pages[_currentIndex], // Display selected screen
+      body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) {
           setState(() {

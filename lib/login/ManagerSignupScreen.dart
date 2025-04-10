@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/bottomScreen/bottommanager.dart';
 import 'package:erp/login/ManagerLoginScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -101,9 +100,18 @@ class _ManagerSignupScreenState extends State<ManagerSignupScreen> {
   "role": "Manager", // Changed from "Employee" to "Manager"
   "gender": _selectedGender,
   "createdAt": FieldValue.serverTimestamp(),
+  "isApproved": false,
 });
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => bottommanager()));
+     ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(
+    content: Text("Signup successful. Awaiting admin approval."),
+    backgroundColor: Colors.green,
+  ),
+);
+Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => const ManagerLoginScreen()),
+);
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {

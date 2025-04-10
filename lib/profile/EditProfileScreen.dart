@@ -67,7 +67,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("No user logged in")),
         );
-        Navigator.pop(context); // Return to previous screen if no user
+        Navigator.pop(context); 
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -138,12 +138,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       try {
         User? user = _auth.currentUser;
         if (user != null) {
-          // Update Firebase Authentication email if it has changed
+       
           if (_emailController.text.trim() != user.email) {
             await user.updateEmail(_emailController.text.trim());
           }
 
-          // Update Firestore data
+       
           await _firestore.collection("users").doc(user.uid).update({
             "name": _nameController.text.trim(),
             "email": _emailController.text.trim(),

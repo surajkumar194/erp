@@ -23,7 +23,7 @@ class _PerformanceState extends State<Performance> {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('tasks').get();
       if (querySnapshot.docs.isNotEmpty) {
-        Map<String, Map<String, int>> performanceMap = {}; // Track both In Process and Done
+        Map<String, Map<String, int>> performanceMap = {}; 
         for (var doc in querySnapshot.docs) {
           var data = doc.data() as Map<String, dynamic>;
           String employee = data['employee'] ?? 'Unknown';

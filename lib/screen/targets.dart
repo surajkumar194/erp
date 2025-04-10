@@ -89,7 +89,6 @@ class _TaskScreenState extends State<TaskScreen> {
         }
       });
 
-      // Navigate to Performance screen after a small delay to ensure update is processed
      
     } catch (e) {
       print("Error updating status: $e");
@@ -106,10 +105,7 @@ class _TaskScreenState extends State<TaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("My Tasks", style: TextStyle(fontSize: 18.sp)),
-        backgroundColor: Colors.blue,
-      ),
+      
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Column(

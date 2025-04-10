@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // For timestamp formatting
+import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 class Tasks extends StatefulWidget {
@@ -38,10 +38,10 @@ class _TasksState extends State<Tasks> {
             itemBuilder: (context, index) {
               var task = tasks[index];
               // Format timestamp if it exists
-              String formattedTimestamp = task['timestamp'] != null
-                  ? DateFormat('dd MMMM yyyy at HH:mm:ss').format(
-                      (task['timestamp'] as Timestamp).toDate().toLocal())
-                  : 'N/A';
+           String formattedTimestamp = task['timestamp'] != null
+    ? DateFormat('dd MMMM yyyy   hh:mm:ss a').format(
+        (task['timestamp'] as Timestamp).toDate().toLocal())
+    : 'N/A';
 
               return Card(
                 elevation: 3,
@@ -61,8 +61,8 @@ class _TasksState extends State<Tasks> {
                       _buildInfoRow("Priority", task['priority'] ?? 'N/A', Colors.red, isBold: true),
                       Divider(),
                       _buildInfoRow("Status", task['status'] ?? 'N/A', Colors.orange),
-                      _buildInfoRow("Date", task['date'] ?? 'N/A', Colors.purple),
-                      _buildInfoRow("Timestamp", formattedTimestamp, Colors.brown),
+                      _buildInfoRow("Submission Date", task['date'] ?? 'N/A', Colors.purple),
+                      _buildInfoRow("Assign Date/time", formattedTimestamp, Colors.brown),
                     ],
                   ),
                 ),

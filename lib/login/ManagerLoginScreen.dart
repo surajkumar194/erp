@@ -22,134 +22,139 @@ class _ManagerLoginScreenState extends State<ManagerLoginScreen> {
   bool _isLoading = false;
 
   Future<void> _login() async {
-    String email = _emailController.text.trim();
-    String password = _passwordController.text.trim();
+  String email = _emailController.text.trim();
+  String password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("Please enter both email and password."),
-            backgroundColor: Colors.red),
-      );
-      return;
-    }
+  if (email.isEmpty || password.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Please enter both email and password."),
+        backgroundColor: Colors.red),
+    );
+    return;
+  }
 
-    if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-        .hasMatch(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("Please enter a valid email address."),
-            backgroundColor: Colors.red),
-      );
-      return;
-    }
+  if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+      .hasMatch(email)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Please enter a valid email address."),
+        backgroundColor: Colors.red),
+    );
+    return;
+  }
 
-    setState(() {
-      _isLoading = true;
-    });
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      // Sign in with email and password
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  try {
+    // Sign in with Firebase Auth
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      // Check user's role from Firestore
-      DocumentSnapshot userDoc = await _firestore
-          .collection("Manager")
-          .doc(userCredential.user!.uid)
-          .get();
+    // Check manager Firestore document
+    final userDoc = await _firestore
+        .collection("Manager")
+        .doc(userCredential.user!.uid)
+        .get();
 
-      if (!userDoc.exists) {
-        // Check if user exists in employees collection
-        DocumentSnapshot employeeDoc = await _firestore
-            .collection("users")
-            .doc(userCredential.user!.uid)
-            .get();
+    if (userDoc.exists) {
+      final userData = userDoc.data() as Map<String, dynamic>;
 
-        if (employeeDoc.exists) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Employees cannot log in to Manager portal."),
-              backgroundColor: Colors.red,
-            ),
+      if (userData["role"] == "Manager") {
+        if (userData["isApproved"] == true) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => bottommanager()),
           );
-          await _auth.signOut(); // Sign out the employee
-          return;
         } else {
+          await _auth.signOut();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Manager account not found. Please sign up."),
-              backgroundColor: Colors.black,
-              action: SnackBarAction(
-                label: 'Sign Up',
-                textColor: Colors.white,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ManagerSignupScreen()),
-                  );
-                },
-              ),
+              content: Text("Your account is not yet approved."),
+              backgroundColor: Colors.orange,
             ),
           );
-          await _auth.signOut();
-          return;
         }
-      }
-
-      // Get role from document
-      String role = userDoc.get("role");
-
-      if (role != "Manager") {
+      } else {
+        await _auth.signOut();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Only managers can access this portal."),
             backgroundColor: Colors.red,
           ),
         );
-        await _auth.signOut(); // Sign out if not a manager
-        return;
+      }
+    } else {
+      // Not a manager - check if it's an employee
+      DocumentSnapshot employeeDoc = await _firestore
+          .collection("users")
+          .doc(userCredential.user!.uid)
+          .get();
+
+      if (employeeDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Employees cannot log in to Manager portal."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Manager account not found. Please sign up."),
+            backgroundColor: Colors.black,
+            action: SnackBarAction(
+              label: 'Sign Up',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ManagerSignupScreen()),
+                );
+              },
+            ),
+          ),
+        );
       }
 
-      // If all checks pass, navigate to manager dashboard
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => bottommanager()));
-    } on FirebaseAuthException catch (e) {
-      String errorMessage;
-      switch (e.code) {
-        case 'wrong-password':
-          errorMessage = 'Incorrect password';
-          break;
-        case 'user-not-found':
-          errorMessage = 'Email not found. Please sign up first';
-          break;
-        case 'invalid-email':
-          errorMessage = 'Invalid email format';
-          break;
-        default:
-          errorMessage = 'Login Failed: ${e.message}';
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Login Failed: ${e.toString()}"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      await _auth.signOut(); // Sign out if not approved or invalid
     }
+  } on FirebaseAuthException catch (e) {
+    String errorMessage;
+    switch (e.code) {
+      case 'wrong-password':
+        errorMessage = 'Incorrect password';
+        break;
+      case 'user-not-found':
+        errorMessage = 'Email not found. Please sign up first';
+        break;
+      case 'invalid-email':
+        errorMessage = 'Invalid email format';
+        break;
+      default:
+        errorMessage = 'Login Failed: ${e.message}';
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Login Failed: ${e.toString()}"),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
