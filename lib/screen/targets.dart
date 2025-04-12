@@ -102,68 +102,173 @@ class _TaskScreenState extends State<TaskScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text("Total Tasks: ${tasks.length}", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                      Text("Monthly Target: $monthlyTarget", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                      Text("Achieved: $achievedTarget", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: isLoading
+        ? Center(child: CircularProgressIndicator())
+        : Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      "Total Tasks: ${tasks.length}",
+                      style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      "Target: $monthlyTarget",
+                      style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      "Achieved: $achievedTarget",
+                      style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: tasks.length,
-                    itemBuilder: (context, index) {
-                      var task = tasks[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-                        child: ListTile(
-                          title: Text(task['client'] ?? 'N/A', style: TextStyle(fontSize: 16.sp)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(task['taskDetails'] ?? 'N/A', style: TextStyle(fontSize: 14.sp)),
-                              Text("Work Type: ${task['workType'] ?? 'N/A'}", style: TextStyle(fontSize: 14.sp)),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () => updateStatus(task['id'], "In Process"),
-                                child: Text("In Process", style: TextStyle(fontSize: 12.sp)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: task['status'] == "In Process" ? Colors.blue : Colors.grey,
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: tasks.length,
+                  itemBuilder: (context, index) {
+                    var task = tasks[index];
+                    return Card(
+                      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(4.w),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RichText(
+  text: TextSpan(
+    children: [
+      TextSpan(
+        text: "Client : ",
+        style: TextStyle(
+          fontSize: 19.sp,
+          fontWeight: FontWeight.w900,
+          color: Colors.black,
+        ),
+      ),
+      TextSpan(
+        text: "${task['client'] ?? 'N/A'}",
+        style: TextStyle(
+          fontSize: 17.sp, // Different font size for the value
+            fontWeight: FontWeight.w500,
+          color: Colors.grey[800], // Or any other color
+        ),
+      ),
+    ],
+  ),
+),
+
+                            SizedBox(height: 1.h),
+                           RichText(
+  text: TextSpan(
+    children: [
+      TextSpan(
+        text: "Description : ",
+        style: TextStyle(
+            fontSize: 19.sp,
+          fontWeight: FontWeight.w900,
+          color: Colors.black,
+        ),
+      ),
+      TextSpan(
+        text: "${task['taskDetails'] ?? 'N/A'}",
+        style: TextStyle(
+            fontSize: 17.sp,
+          fontWeight: FontWeight.w500,
+          color: Colors.grey[800],
+        ),
+      ),
+    ],
+  ),
+),
+  SizedBox(height: 1.h),
+RichText(
+  text: TextSpan(
+    children: [
+      TextSpan(
+        text: "Work Type : ",
+        style: TextStyle(
+            fontSize: 19.sp,
+          fontWeight: FontWeight.w900,
+          color: Colors.black,
+        ),
+      ),
+      TextSpan(
+        text: "${task['workType'] ?? 'N/A'}",
+        style: TextStyle(
+           fontSize: 17.sp,
+        fontWeight: FontWeight.w500,
+          color: Colors.grey[800],
+        ),
+      ),
+    ],
+  ),
+),
+
+                            SizedBox(height: 2.h),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () => updateStatus(task['id'], "In Process"),
+                                    child: Text(
+                                      "In Process",
+                                      style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w700, color: Colors.white),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: task['status'] == "In Process"
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                      foregroundColor: Colors.white,
+                                      padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: 8),
-                              ElevatedButton(
-                                onPressed: () => updateStatus(task['id'], "Done"),
-                                child: Text("Done", style: TextStyle(fontSize: 12.sp)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: task['status'] == "Done" ? Colors.green : Colors.grey,
+                                SizedBox(width: 4.w),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: () => updateStatus(task['id'], "Done"),
+                                    child: Text(
+                                      "Done",
+                                      style: TextStyle(fontSize: 17.sp),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: task['status'] == "Done"
+                                          ? Colors.green
+                                          : Colors.grey,
+                                      foregroundColor: Colors.white,
+                                      padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
-              ],
-            ),
-    );
-  }
+              ),
+            ],
+          ),
+  );
+}
 }

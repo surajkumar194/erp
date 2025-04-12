@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:erp/mamagerscreen/ManagerChatScreen.dart';
 import 'package:erp/mamagerscreen/home.dart';
 import 'package:erp/mamagerscreen/performance.dart';
 import 'package:erp/mamagerscreen/profile.dart';
@@ -28,14 +29,18 @@ class _bottommanagerState extends State<bottommanager> {
         MAnagerHome(),
         Tasks(),
         Performance(),
+          ManagerChatScreen(),
         managerprofile(),
+       // Updated to ManagerChatScreen
       ];
 
   List<String> get _titles => [
         "Home",
         "Tasks",
         "Performance",
+          "Chat with Employees", // Updated title
         "Profile",
+      
       ];
 
   @override
@@ -79,7 +84,7 @@ class _bottommanagerState extends State<bottommanager> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("No user logged in")),
         );
-        Navigator.pop(context); // Return to previous screen if no user
+        Navigator.pop(context);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,8 +99,8 @@ class _bottommanagerState extends State<bottommanager> {
 
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
-    // Navigate to login screen (replace with your login screen widget)
-    // Example: Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+    // Navigate to login screen
+    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ManagerLoginScreen()));
   }
 
   void _showLogoutDialog() {
@@ -109,15 +114,14 @@ class _bottommanagerState extends State<bottommanager> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context);
               },
               child: Text("Cancel", style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context); // Close the dialog
-                await _logout(); // Perform logout
-                // Add navigation to login screen here if needed
+                Navigator.pop(context);
+                await _logout();
               },
               child: Text("Logout", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
             ),
@@ -167,7 +171,7 @@ class _bottommanagerState extends State<bottommanager> {
                   ),
                   Text(
                     _email.isNotEmpty ? _email : "",
-                    style: TextStyle(fontSize: 17.sp,   color: Colors.blue,),
+                    style: TextStyle(fontSize: 17.sp, color: Colors.blue),
                   ),
                 ],
               ),
@@ -187,11 +191,17 @@ class _bottommanagerState extends State<bottommanager> {
               title: Text('Performance'),
               onTap: () => _onDrawerItemSelected(2),
             ),
+                ListTile(
+              leading: Icon(Icons.chat),
+              title: Text('Chating'),
+              onTap: () => _onDrawerItemSelected(3),
+            ),
             ListTile(
               leading: Icon(Icons.person),
               title: Text('Profile'),
-              onTap: () => _onDrawerItemSelected(3),
+              onTap: () => _onDrawerItemSelected(4),
             ),
+        
             Divider(),
             ListTile(
               leading: Icon(Icons.logout, color: Colors.red),
@@ -228,10 +238,15 @@ class _bottommanagerState extends State<bottommanager> {
             icon: Icon(Icons.data_thresholding, size: 21.sp),
             label: 'Performance',
           ),
+           BottomNavigationBarItem(
+            icon: Icon(Icons.chat, size: 21.sp),
+            label: 'Chating',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person, size: 21.sp),
             label: 'Profile',
           ),
+         
         ],
       ),
     );

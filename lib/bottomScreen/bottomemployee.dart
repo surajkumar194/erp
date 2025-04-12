@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:erp/screen/EmployeeChatScreen.dart';
 import 'package:erp/screen/Profile.dart';
 import 'package:erp/screen/targets.dart';
 import 'package:erp/screen/work.dart';
@@ -25,15 +26,19 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   bool _isLoading = false;
 
   List<Widget> get _pages => [
-        EmployeeProfile(),
+        const EmployeeProfile(),
         TaskScreen(),
-        Profile(),
+          const EmployeeChatScreen(), // Updated to EmployeeChatScreen
+        const Profile(),
+      
       ];
 
   List<String> get _titles => [
         "My Work",
         "Targets",
+               "Chating",
         "Profile",
+ 
       ];
 
   @override
@@ -45,7 +50,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   void _onDrawerItemSelected(int index) {
     setState(() {
       _currentIndex = index;
-      Navigator.pop(context); // Close the drawer
+      Navigator.pop(context);
     });
   }
 
@@ -70,12 +75,12 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("User data not found")),
+            const SnackBar(content: Text("User data not found")),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("No user logged in")),
+          const SnackBar(content: Text("No user logged in")),
         );
       }
     } catch (e) {
@@ -94,26 +99,29 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Logout", style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Text("Are you sure you want to log out?"),
+          title: const Text("Logout", style: TextStyle(fontWeight: FontWeight.bold)),
+          content: const Text("Are you sure you want to log out?"),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context);
               },
-              child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
                 await FirebaseAuth.instance.signOut();
-                // TODO: Navigate to login screen
+                // Optionally navigate to login screen
+                // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => EmpoyeeLoginScreen()));
               },
-              child: Text("Logout",
-                  style: TextStyle(
-                      color: Colors.redAccent, fontWeight: FontWeight.bold)),
+              child: const Text(
+                "Logout",
+                style: TextStyle(
+                    color: Colors.redAccent, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         );
@@ -141,13 +149,13 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: const Color(0xffF1E9D2)),
+              decoration: const BoxDecoration(color: Color(0xffF1E9D2)),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircleAvatar(
                     radius: 4.h,
-                    backgroundImage: AssetImage("assets/de.jpg"),
+                    backgroundImage: const AssetImage("assets/de.jpg"),
                   ),
                   SizedBox(height: 1.h),
                   Text(
@@ -159,37 +167,44 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
                   ),
                   Text(
                     _email.isNotEmpty ? _email : "",
-                    style:
-                        TextStyle(fontSize: 17.sp, color: Colors.blue),
+                    style: TextStyle(fontSize: 17.sp, color: Colors.blue),
                   ),
                 ],
               ),
             ),
             ListTile(
-              leading: Icon(Icons.work),
-              title: Text('My Work'),
+              leading: const Icon(Icons.work),
+              title: const Text('My Work'),
               onTap: () => _onDrawerItemSelected(0),
             ),
             ListTile(
-              leading: Icon(Icons.business),
-              title: Text('Targets'),
+              leading: const Icon(Icons.business),
+              title: const Text('Targets'),
               onTap: () => _onDrawerItemSelected(1),
             ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Profile'),
+               ListTile(
+              leading: const Icon(Icons.chat),
+              title: const Text('Manager message'),
               onTap: () => _onDrawerItemSelected(2),
             ),
-            Divider(),
             ListTile(
-              leading: Icon(Icons.logout, color: Colors.red),
-              title: Text('Logout', style: TextStyle(color: Colors.red)),
+              leading: const Icon(Icons.person),
+              title: const Text('Profile'),
+              onTap: () => _onDrawerItemSelected(3),
+            ),
+         
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
               onTap: _showLogoutDialog,
             ),
           ],
         ),
       ),
-      body: _pages[_currentIndex],
+      body: _auth.currentUser == null
+          ? const Center(child: Text("Please log in"))
+          : _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) {
           setState(() {
@@ -203,19 +218,24 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         selectedLabelStyle: TextStyle(fontSize: 17.sp),
         unselectedLabelStyle: TextStyle(fontSize: 17.sp),
         type: BottomNavigationBarType.fixed,
-        items: [
+        items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.work, size: 21.sp),
+            icon: Icon(Icons.work, size: 21),
             label: 'My Work',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.business, size: 21.sp),
+            icon: Icon(Icons.business, size: 21),
             label: 'Targets',
           ),
+           BottomNavigationBarItem(
+            icon: Icon(Icons.chat, size: 21),
+            label: 'Chating',
+          ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person, size: 21.sp),
+            icon: Icon(Icons.person, size: 21),
             label: 'Profile',
           ),
+         
         ],
       ),
     );

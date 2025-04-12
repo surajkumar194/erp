@@ -122,7 +122,7 @@ class _SignupScreenState extends State<SignupScreen> {
       await userCredential.user!.updateDisplayName(_nameController.text.trim());
 
       await _firestore.collection("users").doc(userCredential.user!.uid).set({
-        "uid": userCredential.user!.uid,
+        "employeeId": userCredential.user!.uid,
         "name": _nameController.text.trim(),
         "email": _emailController.text.trim(),
         "phone": _phoneController.text.trim(),

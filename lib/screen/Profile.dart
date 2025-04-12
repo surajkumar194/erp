@@ -94,7 +94,8 @@ class _ProfileState extends State<Profile> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancel", style: TextStyle( fontSize: 17.sp,fontWeight: FontWeight.w800,
+              color: Colors.black)),
           ),
           TextButton(
             onPressed: () async {
@@ -107,7 +108,7 @@ class _ProfileState extends State<Profile> {
               );
             },
             child: Text("Logout",
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900, fontSize: 17.sp)),
           ),
         ],
       );

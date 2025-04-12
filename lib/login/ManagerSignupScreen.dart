@@ -93,7 +93,7 @@ class _ManagerSignupScreenState extends State<ManagerSignupScreen> {
       );
 
     await _firestore.collection("Manager").doc(userCredential.user!.uid).set({
-  "uid": userCredential.user!.uid,
+  "managerId": userCredential.user!.uid,
   "name": _nameController.text.trim(),
   "email": _emailController.text.trim(),
   "phone": _phoneController.text.trim(),
