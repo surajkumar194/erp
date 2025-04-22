@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/chatservice.dart'; // Assuming this is the correct import
+import 'package:erp/chatservice.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
@@ -14,6 +14,7 @@ class ManagerChatScreen extends StatefulWidget {
 class _ManagerChatScreenState extends State<ManagerChatScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
   List<Map<String, dynamic>> employees = [];
   bool isLoading = true;
 
@@ -33,17 +34,36 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
           .where('role', isEqualTo: 'Employee')
           .get();
 
+      List<Map<String, dynamic>> tempEmployees = [];
+
+      for (var doc in querySnapshot.docs) {
+        QuerySnapshot taskSnapshot = await _firestore
+            .collection('tasks')
+            .where('employeeId', isEqualTo: doc['employeeId'])
+            .get();
+
+        List<Map<String, dynamic>> tasks = taskSnapshot.docs.map((taskDoc) {
+          final taskData = taskDoc.data() as Map<String, dynamic>;
+
+          // Ensure managerId is always present
+          taskData['managerId'] ??= _auth.currentUser?.uid ?? '';
+
+          return {
+            ...taskData,
+            'taskId': taskDoc.id,
+          };
+        }).toList();
+
+        tempEmployees.add({
+          'id': doc['employeeId'] as String,
+          'name': doc['name'] as String,
+          'email': doc['email'] as String,
+          'tasks': tasks,
+        });
+      }
+
       setState(() {
-        employees = querySnapshot.docs
-            .map((doc) => {
-                  'id': doc.id,
-                  'name': doc['name'] as String,
-                  'email': doc['email'] as String,
-                  // Add a sample last message and timestamp for design (fetch from Firestore if available)
-                  'lastMessage': 'Hello, how can I assist you?', // Replace with actual data if available
-                  'timestamp': DateTime.now().subtract(Duration(hours: 2)), // Replace with actual data
-                })
-            .toList();
+        employees = tempEmployees;
         isLoading = false;
       });
     } catch (e) {
@@ -56,27 +76,11 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
     }
   }
 
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-
-    if (difference.inDays == 0) {
-      return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else {
-      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : employees.isEmpty
               ? Center(
                   child: Text(
@@ -84,17 +88,17 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                     style: TextStyle(fontSize: 16.sp, color: Colors.grey),
                   ),
                 )
-              : ListView.separated(
+              : ListView.builder(
                   padding: EdgeInsets.all(2.w),
                   itemCount: employees.length,
-                  separatorBuilder: (context, index) => Divider(height: 1.h, color: Colors.grey[300]),
                   itemBuilder: (context, index) {
                     final employee = employees[index];
-                    return ListTile(
+                    final tasks = employee['tasks'] as List<Map<String, dynamic>>;
+
+                    return ExpansionTile(
                       leading: CircleAvatar(
                         radius: 6.w,
-                         backgroundColor: Colors.blue,
-                        //backgroundImage: AssetImage('assets/de.jpg'), // Replace with actual image if available
+                        backgroundColor: Colors.blue,
                         child: employee['name'].isNotEmpty
                             ? Text(
                                 employee['name'][0].toUpperCase(),
@@ -102,38 +106,54 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                               )
                             : null,
                       ),
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            employee['name'],
-                            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-                          ),
-                          Icon(Icons.check, size: 18.sp, color: Colors.green), // Status indicator
-                        ],
+                      title: Text(
+                        employee['name'],
+                        style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        employee['lastMessage'] ?? 'No message yet',
-                        style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Text(
-                        _formatTimestamp(employee['timestamp']),
+                        '${tasks.length} tasks assigned',
                         style: TextStyle(fontSize: 14.sp, color: Colors.grey),
                       ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatConversationScreen(
-                              receiverId: employee['id'],
-                              receiverName: employee['name'],
-                              isManager: true,
-                            ),
-                          ),
-                        );
-                      },
+                      children: tasks.isEmpty
+                          ? [
+                              ListTile(
+                                title: Text(
+                                  'No tasks assigned',
+                                  style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                                ),
+                              ),
+                            ]
+                          : tasks.map((task) {
+                              return ListTile(
+                                title: Text(
+                                  'Task: ${task['client'] ?? 'N/A'}',
+                                  style: TextStyle(
+                                      fontSize: 16.sp, fontWeight: FontWeight.w500),
+                                ),
+                                subtitle: Text(
+                                  'Submission Date: ${task['date'] ?? 'N/A'}',
+                                  style: TextStyle(fontSize: 14.sp, color: Colors.grey, fontWeight: FontWeight.w500),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: const Icon(Icons.mark_unread_chat_alt,
+                                    color: Colors.green),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatConversationScreen(
+                                        receiverId: employee['id'],
+                                        receiverName: employee['name'],
+                                        isManager: true,
+                                        ticketId: task['taskId'],    taskData: task, // 👈 Pass task data
+                                      
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            }).toList(),
                     );
                   },
                 ),

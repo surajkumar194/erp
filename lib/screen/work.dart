@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 class EmployeeProfile extends StatefulWidget {
-  const EmployeeProfile({Key? key}) : super(key: key);
+  const EmployeeProfile({super.key});
 
   @override
   _EmployeeProfileState createState() => _EmployeeProfileState();
@@ -20,8 +20,6 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
     super.initState();
     fetchEmployeeTasks();
   }
-
-  // Fetch tasks assigned to the current employee from Firestore
   Future<void> fetchEmployeeTasks() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
@@ -62,8 +60,6 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
       });
     }
   }
-
-  // Retrieve employee name from Firestore if displayName is unavailable
   Future<String> _getEmployeeNameFromFirestore(String uid) async {
     try {
       DocumentSnapshot doc =
@@ -74,8 +70,6 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
       return "Unknown";
     }
   }
-
-  // Format Firestore Timestamp to a readable string
  String _formatTimestamp(dynamic timestamp) {
   if (timestamp == null || timestamp is! Timestamp) return "N/A";
   DateTime dt = timestamp.toDate();
@@ -121,7 +115,7 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
                               task['taskDetails'] ?? 'N/A',
                               Colors.black87,
                             ),
-                            // Optional: Display task image if available
+                    
                             if (task['imageUrl'] != null) ...[
                               Padding(
                                 padding: EdgeInsets.symmetric(vertical: 1.h),
@@ -171,8 +165,6 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
                 ),
     );
   }
-
-  // Helper widget to build labeled info rows
   Widget _buildInfoRow(String label, String value, Color color,
       {bool isBold = false}) {
     return Padding(

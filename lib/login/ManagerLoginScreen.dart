@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp/bottomScreen/bottommanager.dart';
 import 'package:erp/login/ManagerSignupScreen.dart';
+import 'package:erp/service/sing.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
@@ -74,8 +75,8 @@ class _ManagerLoginScreenState extends State<ManagerLoginScreen> {
           await _auth.signOut();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Your account is not yet approved."),
-              backgroundColor: Colors.orange,
+          content: Text("Your account is not approved yet. Please contact admin.", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700,),),
+            backgroundColor: Colors.black,
             ),
           );
         }
@@ -160,9 +161,26 @@ class _ManagerLoginScreenState extends State<ManagerLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Manager Login", style: TextStyle(fontSize: 18.sp)),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
+      
+        title: Text("Manager Login", style: TextStyle( fontSize: 18.sp,
+      fontWeight: FontWeight.w700,
+      color: Colors.black,)),
+        centerTitle: true, 
+        backgroundColor: Colors.transparent, // Make background transparent
+  elevation: 0, // Optional: remove AppBar shadow
+  flexibleSpace: Container(
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topRight,
+        end: Alignment.bottomLeft,
+        colors: [
+          Color(0xffe7dcc0),
+          Color(0xff013148),
+        ],
+      ),
+     
+    ),
+  ),
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -235,23 +253,28 @@ class _ManagerLoginScreenState extends State<ManagerLoginScreen> {
                 ),
               ),
               SizedBox(height: 2.h),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ManagerSignupScreen()));
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Don't have an account?",
-                        style: TextStyle(fontSize: 16.sp, color: Colors.grey)),
-                    Text(" Sign Up",
-                        style: TextStyle(fontSize: 18.sp, color: Color(0xff120A8F))),
-                  ],
-                ),
-              ),
+             Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Text(
+      "Don't have an account?",
+      style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+    ),
+    GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SignupScreenfirst()),
+        );
+      },
+      child: Text(
+        " Sign Up",
+        style: TextStyle(fontSize: 18.sp,fontWeight: FontWeight.w700, color: Color(0xff120A8F)),
+      ),
+    ),
+  ],
+),
+
             ],
           ),
         ),

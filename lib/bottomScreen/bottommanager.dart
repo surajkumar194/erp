@@ -26,7 +26,7 @@ class _bottommanagerState extends State<bottommanager> {
   bool _isLoading = false;
 
   List<Widget> get _pages => [
-        MAnagerHome(),
+       ManagerHome(),
         Tasks(),
         Performance(),
           ManagerChatScreen(),

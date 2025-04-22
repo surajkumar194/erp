@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 class TaskScreen extends StatefulWidget {
+  const TaskScreen({super.key});
+
   @override
   _TaskScreenState createState() => _TaskScreenState();
 }
@@ -196,7 +198,7 @@ RichText(
   text: TextSpan(
     children: [
       TextSpan(
-        text: "Work Type : ",
+        text: "Submission Date : ",
         style: TextStyle(
             fontSize: 19.sp,
           fontWeight: FontWeight.w900,
@@ -204,7 +206,7 @@ RichText(
         ),
       ),
       TextSpan(
-        text: "${task['workType'] ?? 'N/A'}",
+        text: "${task['date'] ?? 'N/A'}",
         style: TextStyle(
            fontSize: 17.sp,
         fontWeight: FontWeight.w500,

@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/aftersplash/login.dart';
 import 'package:erp/bottomScreen/bottomemployee.dart';
 import 'package:erp/bottomScreen/bottommanager.dart';
+import 'package:erp/login/Login.dart';
+import 'package:erp/service/sing.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +23,9 @@ class MyApp extends StatelessWidget {
       builder: (context, orientation, deviceType) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: const SplashScreen(),
+          home: const EmpoyeeLoginScreen(),
+          //ManagerLoginScreen
+          //EmpoyeeLoginScreen
         );
       },
     );
@@ -94,7 +97,7 @@ class AuthWrapper extends StatelessWidget {
         print("Error checking role: $e");
       }
     }
-    return const Login();
+    return const SignupScreenfirst(); 
   }
 
   @override
@@ -107,8 +110,12 @@ class AuthWrapper extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        return snapshot.data ?? const Login();
+        return snapshot.data ?? const SignupScreenfirst(); 
       },
     );
   }
 }
+
+
+
+

@@ -150,7 +150,7 @@ Navigator.pushReplacement(
       appBar: AppBar(
         title: Text("Sign Up", style: TextStyle(fontSize: 18.sp)),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+      backgroundColor: const Color(0xffF1E9D2),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -278,19 +278,19 @@ Navigator.pushReplacement(
                 ),
               ),
 
-              SizedBox(height: 2.h),
+          //    SizedBox(height: 2.h),
 
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ManagerLoginScreen()));
-                },
-                child: Text("Already have an account? Login",
-                    style:
-                        TextStyle(fontSize: 16.sp, color: Color(0xff120A8F))),
-              ),
+              // TextButton(
+              //   onPressed: () {
+              //     Navigator.pushReplacement(
+              //         context,
+              //         MaterialPageRoute(
+              //             builder: (context) => const ManagerLoginScreen()));
+              //   },
+              //   child: Text("Already have an account? Login",
+              //       style:
+              //           TextStyle(fontSize: 16.sp, color: Color(0xff120A8F))),
+              // ),
             ],
           ),
         ),

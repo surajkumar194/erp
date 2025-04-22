@@ -1,6 +1,5 @@
 // signup_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/bottomScreen/bottomemployee.dart';
 import 'package:erp/login/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -130,15 +129,43 @@ class _SignupScreenState extends State<SignupScreen> {
         "designation": _selectedDesignation, // Added field
         "gender": _selectedGender,
         "createdAt": FieldValue.serverTimestamp(),
+         "isApproved": false,
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => BottomNavigationBarWidget()),
+     ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(
+    content: Text("Signup successful. Awaiting admin approval."),
+    backgroundColor: Colors.green,
+  ),
+);
+Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => const EmpoyeeLoginScreen()),
+);
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      switch (e.code) {
+        case 'email-already-in-use':
+          errorMessage =
+              'This email is already registered. Please login instead';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Invalid email format';
+          break;
+        case 'weak-password':
+          errorMessage = 'Password is too weak';
+          break;
+        default:
+          errorMessage = 'Signup Failed: ${e.message}';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Signup Failed: ${e.toString()}"), backgroundColor: Colors.red),
+        SnackBar(
+            content: Text("Signup Failed: ${e.toString()}"),
+            backgroundColor: Colors.red),
       );
     } finally {
       setState(() {
@@ -147,13 +174,14 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Employee Sign Up", style: TextStyle(fontSize: 18.sp)),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+      backgroundColor: const Color(0xffF1E9D2),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -253,16 +281,16 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 2.h),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const EmpoyeeLoginScreen()),
-                  );
-                },
-                child: Text("Already have an account? Login", style: TextStyle(fontSize: 16.sp, color: Color(0xff120A8F))),
-              ),
+              // SizedBox(height: 2.h),
+              // TextButton(
+              //   onPressed: () {
+              //     Navigator.pushReplacement(
+              //       context,
+              //       MaterialPageRoute(builder: (context) => const EmpoyeeLoginScreen()),
+              //     );
+              //   },
+              //   child: Text("Already have an account? Login", style: TextStyle(fontSize: 16.sp, color: Color(0xff120A8F))),
+              // ),
             ],
           ),
         ),

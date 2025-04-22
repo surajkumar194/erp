@@ -44,7 +44,8 @@ class DefaultFirebaseOptions {
    // apiKey: 'AIzaSyCXSgh8l1kS5ShDj75xB574FvamPjNmgCg',
     appId: '1:343320367868:android:9a7e708a78b458e5c6bd79',
     messagingSenderId: '115907018483',
-    projectId: 'jannatkids-a22cd', apiKey: 'AIzaSyCBrvuMgclOjqNyocevgtoHPmrhQcVNRjU',
+    projectId: 'jannatkids-a22cd', 
+    apiKey: 'AIzaSyCBrvuMgclOjqNyocevgtoHPmrhQcVNRjU',
    // storageBucket: 'pushnotification-f5b52.appspot.com',
   );
 
@@ -65,4 +66,3 @@ class DefaultFirebaseOptions {
   //   iosBundleId: 'com.example.apps.RunnerTests',
   // );
 }
-

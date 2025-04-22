@@ -28,17 +28,15 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
   List<Widget> get _pages => [
         const EmployeeProfile(),
         TaskScreen(),
-          const EmployeeChatScreen(), // Updated to EmployeeChatScreen
+        const EmployeeChatScreen(), // Updated to EmployeeChatScreen
         const Profile(),
-      
       ];
 
   List<String> get _titles => [
         "My Work",
         "Targets",
-               "Chating",
+        "Chating",
         "Profile",
- 
       ];
 
   @override
@@ -99,7 +97,8 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Logout", style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text("Logout",
+              style: TextStyle(fontWeight: FontWeight.bold)),
           content: const Text("Are you sure you want to log out?"),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -182,7 +181,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
               title: const Text('Targets'),
               onTap: () => _onDrawerItemSelected(1),
             ),
-               ListTile(
+            ListTile(
               leading: const Icon(Icons.chat),
               title: const Text('Manager message'),
               onTap: () => _onDrawerItemSelected(2),
@@ -192,7 +191,6 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
               title: const Text('Profile'),
               onTap: () => _onDrawerItemSelected(3),
             ),
-         
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
@@ -227,7 +225,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
             icon: Icon(Icons.business, size: 21),
             label: 'Targets',
           ),
-           BottomNavigationBarItem(
+          BottomNavigationBarItem(
             icon: Icon(Icons.chat, size: 21),
             label: 'Chating',
           ),
@@ -235,7 +233,6 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
             icon: Icon(Icons.person, size: 21),
             label: 'Profile',
           ),
-         
         ],
       ),
     );

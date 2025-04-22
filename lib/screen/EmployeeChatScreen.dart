@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/chatservice.dart'; // Assuming this is the correct import
+import 'package:erp/chatservice.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
@@ -8,95 +8,69 @@ class EmployeeChatScreen extends StatefulWidget {
   const EmployeeChatScreen({super.key});
 
   @override
-  _EmployeeChatScreenState createState() => _EmployeeChatScreenState();
+  State<EmployeeChatScreen> createState() => _EmployeeChatScreenState();
 }
 
 class _EmployeeChatScreenState extends State<EmployeeChatScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? managerId;
-  String? managerName;
-  String? lastMessage;
-  DateTime? lastTimestamp;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   bool isLoading = true;
+  List<Map<String, dynamic>> assignedTasks = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchManager();
+    _fetchAssignedTasks();
   }
 
-  Future<void> _fetchManager() async {
+  Future<void> _fetchAssignedTasks() async {
     setState(() {
       isLoading = true;
     });
+
     try {
-      // Fetch the first approved manager
-      QuerySnapshot querySnapshot = await _firestore
-          .collection('Manager')
-          .where('isApproved', isEqualTo: true)
-          .limit(1)
+      String employeeId = _auth.currentUser!.uid;
+
+      QuerySnapshot taskSnapshot = await _firestore
+          .collection('tasks')
+          .where('employeeId', isEqualTo: employeeId)
           .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        var managerDoc = querySnapshot.docs.first;
-        String employeeId = _auth.currentUser!.uid;
-        String chatId = '${managerDoc.id}_$employeeId';
+      List<Map<String, dynamic>> tasks = taskSnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['taskId'] = doc.id;
+        return data;
+      }).toList();
 
-        // Fetch the latest message from the chats collection
-        QuerySnapshot chatSnapshot = await _firestore
-            .collection('chats')
-            .doc(chatId)
-            .collection('messages')
-            .orderBy('timestamp', descending: true)
-            .limit(1)
-            .get();
-
-        String? latestMessage = chatSnapshot.docs.isNotEmpty
-            ? chatSnapshot.docs.first['message'] as String?
-            : 'Tap to start chatting';
-        Timestamp? latestTimestamp = chatSnapshot.docs.isNotEmpty
-            ? chatSnapshot.docs.first['timestamp'] as Timestamp?
-            : Timestamp.now();
-
-        setState(() {
-          managerId = managerDoc.id;
-          managerName = managerDoc['name'] as String;
-          lastMessage = latestMessage;
-          lastTimestamp = latestTimestamp?.toDate();
-          isLoading = false;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No manager found')),
-        );
-        setState(() {
-          isLoading = false;
-        });
-      }
+      setState(() {
+        assignedTasks = tasks;
+        isLoading = false;
+      });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching manager: $e')),
-      );
       setState(() {
         isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching tasks: $e')),
+      );
     }
   }
 
-  String _formatTimestamp(DateTime? timestamp) {
+  String _formatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return '';
+    final dateTime = timestamp.toDate();
     final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final difference = now.difference(dateTime);
 
     if (difference.inDays == 0) {
-      return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
+      return '${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
     } else if (difference.inDays == 1) {
       return 'Yesterday';
     } else if (difference.inDays < 7) {
       return '${difference.inDays} days ago';
     } else {
-      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
   }
 
@@ -104,59 +78,90 @@ class _EmployeeChatScreenState extends State<EmployeeChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : managerId == null
+          ? const Center(child: CircularProgressIndicator())
+          : assignedTasks.isEmpty
               ? Center(
                   child: Text(
-                    'No manager available',
-                    style: TextStyle(fontSize: 18.sp, color: Colors.grey),
+                    'No tasks assigned',
+                    style: TextStyle(fontSize: 16.sp, color: Colors.grey),
                   ),
                 )
-              : Column(
-                  children: [
-                    SizedBox(height: 2.h), // Add some top padding
-                    ListTile(
-                      leading: CircleAvatar(
-                        radius: 4.w,
-                        child: Text(
-                          managerName![0].toUpperCase(),
-                          style: TextStyle(fontSize: 16.sp, color: Colors.white),
+              : ListView.builder(
+                  padding: EdgeInsets.all(3.w),
+                  itemCount: assignedTasks.length,
+                  itemBuilder: (context, index) {
+                    final task = assignedTasks[index];
+                    final managerName = task['managerName'] ?? 'Manager';
+                    final ticketId = task['ticketId'] ?? 'N/A';
+
+                    return Card(
+                      elevation: 2,
+                      margin: EdgeInsets.only(bottom: 2.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Text(managerName[0].toUpperCase()),
                         ),
-                        backgroundColor: Colors.blue,
+                        title: Text(
+                          'Client: ${task['client'] ?? ''}',
+                          style: TextStyle(
+                              fontSize: 16.sp, fontWeight: FontWeight.w500),
+                        ),
+                        subtitle: Text(
+                          
+                 'Submission Date: ${task['date'] ?? ''}',
+                          style:
+                              TextStyle(fontSize: 14.sp, color: Colors.blueGrey,fontWeight: FontWeight.w500),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.message,),
+                          onPressed: () {
+                            final String? receiverId = task['managerId'];
+                            final String? ticketId = task['taskId'];
+                            final String managerName =
+                                task['managerName'] ?? 'Manager';
+
+                            print('Task Data: $task'); // Debug full task data
+                            print('managerId: $receiverId'); // Debug ID
+
+                            if (receiverId == null || receiverId.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Manager ID is missing for this task.'),
+                                ),
+                              );
+                              return;
+                            }
+
+                            if (ticketId == null || ticketId.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Task ID is missing.'),
+                                ),
+                              );
+                              return;
+                            }
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatConversationScreen(
+                                  receiverId: receiverId,
+                                  receiverName: managerName,
+                                  isManager: false,
+                                  ticketId: ticketId,
+                                  taskData: task, // Pass task data
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                      title: Row(
-                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            managerName!,
-                            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-                          ), Icon(Icons.check, size: 18.sp, color: Colors.green),
-                        ],
-                      ),
-                      subtitle: Text(
-                        lastMessage ?? 'Tap to start chatting',
-                        style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Text(
-                        _formatTimestamp(lastTimestamp),
-                        style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatConversationScreen(
-                              receiverId: managerId!,
-                              receiverName: managerName!,
-                              isManager: false,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                    );
+                  },
                 ),
     );
   }

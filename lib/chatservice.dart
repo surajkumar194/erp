@@ -11,12 +11,16 @@ class ChatConversationScreen extends StatefulWidget {
   final String receiverId;
   final String receiverName;
   final bool isManager;
+  final String ticketId;
+  final Map<String, dynamic> taskData;
 
   const ChatConversationScreen({
     super.key,
     required this.receiverId,
     required this.receiverName,
     required this.isManager,
+    required this.ticketId,
+    required this.taskData,
   });
 
   @override
@@ -29,8 +33,12 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final TextEditingController _messageController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  late String chatId;
   User? currentUser;
+  late String chatId;
+  bool showTasks = false;
+  bool isLoadingTask = false;
+  bool isSendingMessage = false; // Track the sending status
+  Map<String, dynamic>? task;
 
   @override
   void initState() {
@@ -38,20 +46,80 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     currentUser = _auth.currentUser;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No user logged in. Please log in again.')),
+        const SnackBar(content: Text('No user logged in.')),
       );
       return;
     }
+
     chatId = widget.isManager
-        ? '${currentUser!.uid}_${widget.receiverId}'
-        : '${widget.receiverId}_${currentUser!.uid}';
+        ? '${currentUser!.uid}_${widget.receiverId}_${widget.ticketId}'
+        : '${widget.receiverId}_${currentUser!.uid}_${widget.ticketId}';
+
+    _buildTaskInfo();
   }
 
-  // Function to pick and upload image
-  Future<void> _pickAndSendImage() async {
-    if (currentUser == null) return;
+  Widget _buildTaskInfo() {
+  final task = widget.taskData;
+  String taskDetails = task['taskDetails'] ?? 'N/A';
+  String client = task['client'] ?? 'N/A';
+  String submissionDate = task['date'] ?? 'N/A';
+  String assignDate = task['timestamp'] != null
+      ? _formatTimestamp(task['timestamp'])
+      : 'N/A';
 
-    try {
+  return Card(
+    margin: const EdgeInsets.all(12),
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInfoRow("Task Details", taskDetails, Colors.black87),
+          _buildInfoRow("Client", client, Colors.green),
+          _buildInfoRow("Submission Date", submissionDate, Colors.purple),
+          _buildInfoRow("Assign Date/Time", assignDate, Colors.brown),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildInfoRow(String title, String value, Color color) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "$title: ",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(color: color),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+String _formatTimestamp(Timestamp timestamp) {
+  final date = timestamp.toDate();
+  return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+}
+
+
+  Future<void> _pickAndSendImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null || currentUser == null) return;
+
+    setState(() {
+      isSendingMessage = true; // Set sending status to true
+    });
+
+     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image == null) return;
 
@@ -62,8 +130,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       TaskSnapshot snapshot = await uploadTask;
       String downloadUrl = await snapshot.ref.getDownloadURL();
 
-      // Save image message to Firestore
-      await _firestore.collection('chats').doc(chatId).collection('messages').add({
+
+  await _firestore.collection('chats').doc(chatId).collection('messages').add({
         'senderId': currentUser!.uid,
         'senderName': currentUser!.displayName ?? 'Manager',
         'imageUrl': downloadUrl,
@@ -83,7 +151,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     }
   }
 
-  void _sendMessage() async {
+   void _sendMessage() async {
     if (_messageController.text.trim().isEmpty || currentUser == null) return;
 
     try {
@@ -108,29 +176,48 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     }
   }
 
+
+  // Widget _buildInfoRow(String title, String value, Color color, {bool isBold = false}) {
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(vertical: 0.5.h),
+  //     child: Row(
+  //       children: [
+  //         Text('$title: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp)),
+  //         Text(
+  //           value,
+  //           style: TextStyle(
+  //             color: color,
+  //             fontSize: 13.sp,
+  //             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
     if (currentUser == null) {
-      return Scaffold(
-        body: Center(
-          child: Text(
-            'No user logged in. Please log in again.',
-            style: TextStyle(fontSize: 16.sp),
-          ),
-        ),
-      );
+      return const Scaffold(body: Center(child: Text('No user found')));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.receiverName,
-          style: TextStyle(fontSize: 18.sp, color: Colors.black),
-        ),
-        backgroundColor: Color(0xffF1E9D2),
+        backgroundColor: const Color(0xffF1E9D2),
         elevation: 0,
+        title: Row(
+          children: [
+            Text(widget.receiverName, style: TextStyle(fontSize: 16.sp, color: Colors.black)),
+            const Spacer(),
+            IconButton(
+              icon: Icon(showTasks ? Icons.task_alt : Icons.task, size: 20.sp, color: Colors.blue),
+              onPressed: () => setState(() => showTasks = !showTasks),
+            )
+          ],
+        ),
       ),
-      body: Column(
+        body: Column(
         children: [
           Expanded(
             child: Container(
@@ -291,7 +378,6 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       ),
     );
   }
-
   String _getTimeAgo(dynamic timestamp) {
     if (timestamp == null) return '';
     DateTime dateTime = (timestamp as Timestamp).toDate();

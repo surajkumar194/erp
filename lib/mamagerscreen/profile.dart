@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp/aftersplash/login.dart';
+import 'package:erp/login/ManagerLoginScreen.dart';
 import 'package:erp/mamagerscreen/editprofile.dart';
 import 'package:erp/profile/attendance.dart';
-import 'package:erp/splashScreen/Loginboth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -107,7 +107,7 @@ class _managerprofileState extends State<managerprofile> {
               Navigator.pop(context); // Close dialog
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const Loginboth()),
+                MaterialPageRoute(builder: (context) => const ManagerLoginScreen()),
                 (route) => false,
               );
             },

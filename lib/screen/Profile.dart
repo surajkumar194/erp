@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp/aftersplash/login.dart';
+import 'package:erp/login/Login.dart';
 import 'package:erp/profile/EditProfileScreen.dart';
 import 'package:erp/profile/attendance.dart';
-import 'package:erp/splashScreen/Loginboth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -103,7 +103,7 @@ class _ProfileState extends State<Profile> {
               Navigator.pop(context); // Close dialog
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const Loginboth()),
+                MaterialPageRoute(builder: (context) => const EmpoyeeLoginScreen()),
                 (route) => false,
               );
             },
@@ -182,7 +182,7 @@ class _ProfileState extends State<Profile> {
           );
         } on FirebaseAuthException catch (e) {
           if (e.code == 'requires-recent-login') {
-            // Sign out and redirect to login if recent login is required
+         
             await _auth.signOut();
             Navigator.pushAndRemoveUntil(
               context,

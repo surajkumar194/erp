@@ -1,25 +1,29 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:uuid/uuid.dart';
 
-class MAnagerHome extends StatefulWidget {
-  const MAnagerHome({super.key});
+class ManagerHome extends StatefulWidget {
+  const ManagerHome({super.key});
 
   @override
-  State<MAnagerHome> createState() => _MAnagerHomeState();
+  State<ManagerHome> createState() => _ManagerHomeState();
 }
 
-class _MAnagerHomeState extends State<MAnagerHome> {
+class _ManagerHomeState extends State<ManagerHome> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _taskDetailsController = TextEditingController();
+  final Uuid _uuid = Uuid();
 
   String? _selectedClient;
   String? _selectedEmployee;
+  String? _selectedEmployeeId;
   String? _selectedWorkType;
-  String? _priority ;
+  String? _priority;
   DateTime? _selectedDate;
 
-  List<String> employees = [];
+  List<Map<String, String>> employees = []; // Changed to Map<String, String>
   bool isLoadingEmployees = false;
 
   List<String> clients = [
@@ -27,14 +31,21 @@ class _MAnagerHomeState extends State<MAnagerHome> {
     'Dell Technologies',
     'Ola Cabs',
     'BYJUS',
-    'Apple'
+    'Apple',
+    'Excent Solutions',
+    'Henceforth Solutions',
+    'i-Next Web Technologies Pvt Ltd',
+    'XEAM Ventures Pvt Ltd',
+    'Cybrain Software Solutions',
+    'Paras Technologies',
+    'Sunfocus Solutions Pvt Ltd',
+    'VT Netzwelt',
   ];
 
   List<String> designations = [
     'Development',
     'Design',
     'Testing',
-    'Deployment',
     'Maintenance',
     'Research',
     'Project Management',
@@ -45,7 +56,7 @@ class _MAnagerHomeState extends State<MAnagerHome> {
     'Graphic Design',
     'Website',
     'SEO',
-    'Ads'
+    'Ads',
   ];
 
   List<String> priorities = ['Low', 'Medium', 'High', 'Urgent'];
@@ -68,6 +79,8 @@ class _MAnagerHomeState extends State<MAnagerHome> {
     setState(() {
       isLoadingEmployees = true;
       employees = [];
+      _selectedEmployee = null;
+      _selectedEmployeeId = null;
     });
 
     try {
@@ -78,68 +91,104 @@ class _MAnagerHomeState extends State<MAnagerHome> {
           .get();
 
       setState(() {
-        employees =
-            querySnapshot.docs.map((doc) => doc['name'] as String).toList();
+        employees = querySnapshot.docs
+            .map((doc) => {
+                  'name': doc['name'] as String? ?? 'Unknown Employee',
+                  'uid': doc.id,
+                })
+            .toList();
         isLoadingEmployees = false;
       });
+
+      print('Fetched employees: $employees'); // Debug log
+
+      if (employees.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("No employees found for this designation"),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     } catch (e) {
       print("Error fetching employees: $e");
       setState(() {
         isLoadingEmployees = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error fetching employees: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   Future<void> _submitDataToFirebase() async {
-if (_formKey.currentState!.validate() && 
-      _taskDetailsController.text.isNotEmpty && 
-      _selectedDate != null) {
+    if (_formKey.currentState!.validate() &&
+        _taskDetailsController.text.isNotEmpty &&
+        _selectedDate != null &&
+        _selectedEmployee != null &&
+        _selectedEmployeeId != null) {
       try {
+        String ticketId = 'TICKET-${_uuid.v4().substring(0, 8).toUpperCase()}';
+
         await FirebaseFirestore.instance.collection('tasks').add({
+          'ticketId': ticketId,
           'client': _selectedClient,
           'workType': _selectedWorkType,
+           'managerId': FirebaseAuth.instance.currentUser!.uid, // 👈 ADD THIS
+
           'employee': _selectedEmployee,
+          'employeeId': _selectedEmployeeId,
           'taskDetails': _taskDetailsController.text.trim(),
           'priority': _priority,
           'date': _selectedDate!.toLocal().toString().split(' ')[0],
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-            "Task added successfully",
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Task added successfully with Ticket ID: $ticketId",
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: Colors.green,
           ),
-          backgroundColor: Colors.green,
-        ));
+        );
 
         _formKey.currentState!.reset();
         setState(() {
           _selectedClient = null;
           _selectedWorkType = null;
           _selectedEmployee = null;
+          _selectedEmployeeId = null;
           _taskDetailsController.clear();
-          _priority = null ;
+          _priority = null;
           _selectedDate = null;
           employees = [];
         });
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Failed to add task: $e",
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
           content: Text(
-            "Failed to add task: $e",
+            "Please fill all required fields",
             style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
           ),
           backgroundColor: Colors.red,
-        ));
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(
-          "Please fill all required fields",
-          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.red,
-      ));
+      );
     }
   }
 
@@ -163,91 +212,139 @@ if (_formKey.currentState!.validate() &&
                 key: _formKey,
                 child: Column(
                   children: [
-                    Text("Manager",
-                        style: TextStyle(
-                            fontSize: 20.sp, fontWeight: FontWeight.w600)),
+                    Text(
+                      "Manager",
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     SizedBox(height: 1.h),
                     DropdownButtonFormField<String>(
                       value: _selectedClient,
                       hint: const Text('Select Client'),
                       decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.person),
-                          border: OutlineInputBorder()),
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                      ),
                       items: clients
-                          .map((String client) => DropdownMenuItem(
-                              value: client, child: Text(client)))
+                          .map((client) => DropdownMenuItem(
+                                value: client,
+                                child: Text(client),
+                              ))
                           .toList(),
-                      onChanged: (value) =>
-                          setState(() => _selectedClient = value),
-                      validator: (value) =>
-                          value == null ? 'Please select a client' : null,
+                      onChanged: (value) => setState(() => _selectedClient = value),
+                      validator: (value) => value == null ? 'Please select a client' : null,
                     ),
                     SizedBox(height: 2.h),
                     DropdownButtonFormField<String>(
                       value: _selectedWorkType,
                       hint: const Text('Select Designation'),
                       decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.work),
-                          border: OutlineInputBorder()),
+                        prefixIcon: Icon(Icons.work),
+                        border: OutlineInputBorder(),
+                      ),
                       items: designations
-                          .map((String designation) => DropdownMenuItem(
-                              value: designation, child: Text(designation)))
+                          .map((designation) => DropdownMenuItem(
+                                value: designation,
+                                child: Text(designation),
+                              ))
                           .toList(),
                       onChanged: (value) {
                         setState(() {
                           _selectedWorkType = value;
                           _selectedEmployee = null;
-                          _fetchEmployeesForDesignation(value!);
+                          _selectedEmployeeId = null;
+                          if (value != null) {
+                            _fetchEmployeesForDesignation(value);
+                          }
                         });
                       },
-                      validator: (value) =>
-                          value == null ? 'Please select designation' : null,
+                      validator: (value) => value == null ? 'Please select designation' : null,
                     ),
                     SizedBox(height: 2.h),
                     isLoadingEmployees
                         ? const Center(child: CircularProgressIndicator())
-                        : DropdownButtonFormField<String>(
-                            value: _selectedEmployee,
-                            hint: const Text('Select Employee'),
-                            decoration: const InputDecoration(
-                                prefixIcon: Icon(Icons.people),
-                                border: OutlineInputBorder()),
-                            items: employees
-                                .map((String employee) => DropdownMenuItem(
-                                    value: employee, child: Text(employee)))
-                                .toList(),
-                            onChanged: (value) =>
-                                setState(() => _selectedEmployee = value),
-                            validator: (value) => value == null
-                                ? 'Please select an employee'
-                                : null,
-                          ),
+                        : employees.isEmpty && _selectedWorkType != null
+                            ? Column(
+                                children: [
+                                  const Text(
+                                    'No employees available for this designation',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        _fetchEmployeesForDesignation(_selectedWorkType!),
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              )
+                            : DropdownButtonFormField<String>(
+                                value: _selectedEmployee,
+                                hint: const Text('Select Employee'),
+                                decoration: const InputDecoration(
+                                  prefixIcon: Icon(Icons.people),
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: employees.map((employee) {
+                                  final name = employee['name']!;
+                                  return DropdownMenuItem<String>(
+                                    value: name,
+                                    child: Text(name),
+                                  );
+                                }).toList(),
+                                onChanged: employees.isEmpty
+                                    ? null
+                                    : (String? value) {
+                                        if (value != null) {
+                                          setState(() {
+                                            _selectedEmployee = value;
+                                            final selectedEmp = employees.firstWhere(
+                                              (emp) => emp['name'] == value,
+                                              orElse: () => {
+                                                'uid': '',
+                                                'name': 'Unknown',
+                                              },
+                                            );
+                                            _selectedEmployeeId = selectedEmp['uid'];
+                                            if (_selectedEmployeeId!.isEmpty) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text("Error: Employee ID not found"),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          });
+                                        }
+                                      },
+                                validator: (value) =>
+                                    value == null ? 'Please select an employee' : null,
+                              ),
                     SizedBox(height: 2.h),
-
                     DropdownButtonFormField<String>(
                       value: _priority,
-                      hint:  Text('Select Priority'),
+                      hint: const Text('Select Priority'),
                       decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.priority_high),
-                          border: OutlineInputBorder(),
-                          errorStyle: TextStyle(
-      color: Colors.red,
-      fontSize: 14.sp,
-    ),
-                          ),
+                        prefixIcon: const Icon(Icons.priority_high),
+                        border: const OutlineInputBorder(),
+                        errorStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 14.sp,
+                        ),
+                      ),
                       items: priorities
-                          .map((String priority) => DropdownMenuItem(
-                              value: priority, child: Text(priority)))
+                          .map((priority) => DropdownMenuItem(
+                                value: priority,
+                                child: Text(priority),
+                              ))
                           .toList(),
                       onChanged: (value) => setState(() => _priority = value),
-                      validator: (value) =>
-                          value == null ? 'Please select priority' : null,
+                      validator: (value) => value == null ? 'Please select priority' : null,
                     ),
-
                     SizedBox(height: 2.h),
                     Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(20.sp),
@@ -268,14 +365,6 @@ if (_formKey.currentState!.validate() &&
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
-
-                                // Text(
-                                //   "Date: ${_selectedDate != null ? _selectedDate!.toLocal().toString().split(' ')[0] : 'Not Set'}",
-                                //   style: TextStyle(
-                                //     fontSize: 14.sp,
-                                //     color: Colors.grey[700],
-                                //   ),
-                                // ),
                               ],
                             ),
                           ),
@@ -284,8 +373,8 @@ if (_formKey.currentState!.validate() &&
                               showModalBottomSheet(
                                 context: context,
                                 shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(20)),
+                                  borderRadius:
+                                      BorderRadius.vertical(top: Radius.circular(20)),
                                 ),
                                 isScrollControlled: true,
                                 builder: (context) {
@@ -293,21 +382,17 @@ if (_formKey.currentState!.validate() &&
                                   String? dateError;
 
                                   return StatefulBuilder(
-                                    builder: (BuildContext context,
-                                        StateSetter setModalState) {
+                                    builder: (BuildContext context, StateSetter setModalState) {
                                       return Padding(
                                         padding: EdgeInsets.only(
-                                          bottom: MediaQuery.of(context)
-                                              .viewInsets
-                                              .bottom,
+                                          bottom: MediaQuery.of(context).viewInsets.bottom,
                                           left: 16,
                                           right: 16,
                                           top: 20,
                                         ),
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Center(
                                               child: Text(
@@ -320,16 +405,12 @@ if (_formKey.currentState!.validate() &&
                                             ),
                                             SizedBox(height: 12),
                                             TextFormField(
-                                              controller:
-                                                  _taskDetailsController,
+                                              controller: _taskDetailsController,
                                               decoration: InputDecoration(
-                                                hintText:
-                                                    "Enter your task here...",
-                                                border:
-                                                    const OutlineInputBorder(
+                                                hintText: "Enter your task here...",
+                                                border: const OutlineInputBorder(
                                                   borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(12)),
+                                                      BorderRadius.all(Radius.circular(12)),
                                                 ),
                                                 errorText: taskError,
                                               ),
@@ -338,19 +419,16 @@ if (_formKey.currentState!.validate() &&
                                             SizedBox(height: 1.h),
                                             Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                                  MainAxisAlignment.spaceBetween,
                                               children: [
                                                 Text(
                                                   "Assign Date: ${_selectedDate != null ? _selectedDate!.toLocal().toString().split(' ')[0] : 'Not Assigned'}",
-                                                  style: TextStyle(
-                                                      fontSize: 18.sp),
+                                                  style: TextStyle(fontSize: 18.sp),
                                                 ),
                                                 IconButton(
                                                   icon: const Icon(
                                                     Icons.date_range,
-                                                    color: Color.fromARGB(
-                                                        255, 2, 54, 96),
+                                                    color: Color.fromARGB(255, 2, 54, 96),
                                                     size: 24,
                                                   ),
                                                   onPressed: () async {
@@ -358,8 +436,7 @@ if (_formKey.currentState!.validate() &&
                                                         await showDatePicker(
                                                       context: context,
                                                       initialDate:
-                                                          _selectedDate ??
-                                                              DateTime.now(),
+                                                          _selectedDate ?? DateTime.now(),
                                                       firstDate: DateTime.now(),
                                                       lastDate: DateTime(2100),
                                                     );
@@ -368,19 +445,16 @@ if (_formKey.currentState!.validate() &&
                                                         _selectedDate = picked;
                                                       });
                                                       setModalState(() {
-                                                        dateError =
-                                                            null; // Clear date error when date is picked
+                                                        dateError = null;
                                                       });
                                                     }
                                                   },
                                                 ),
                                               ],
                                             ),
-                                            if (dateError !=
-                                                null) // Show date error message
+                                            if (dateError != null)
                                               Padding(
-                                                padding:
-                                                    EdgeInsets.only(top: 8),
+                                                padding: EdgeInsets.only(top: 8),
                                                 child: Text(
                                                   dateError!,
                                                   style: TextStyle(
@@ -397,32 +471,26 @@ if (_formKey.currentState!.validate() &&
                                                   foregroundColor: Colors.white,
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
+                                                        BorderRadius.circular(10),
                                                   ),
                                                 ),
                                                 onPressed: () {
                                                   setModalState(() {
-                                                    // Reset errors
                                                     taskError = null;
                                                     dateError = null;
 
-                                                    // Validate task details
-                                                    if (_taskDetailsController
-                                                        .text
+                                                    if (_taskDetailsController.text
                                                         .trim()
                                                         .isEmpty) {
                                                       taskError =
                                                           'Task details are required';
                                                     }
 
-                                                    // Validate date
                                                     if (_selectedDate == null) {
                                                       dateError =
                                                           'Please select a date';
                                                     }
 
-                                                    // If no errors, proceed
                                                     if (taskError == null &&
                                                         dateError == null) {
                                                       setState(() {});
@@ -464,12 +532,14 @@ if (_formKey.currentState!.validate() &&
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 20.w, vertical: 15),
+                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15),
                         textStyle: TextStyle(
-                            fontSize: 18.sp, fontWeight: FontWeight.bold),
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       child: const Text('Submit'),
                     ),

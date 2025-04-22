@@ -22,7 +22,6 @@ class _PerformanceState extends State<Performance> {
     'Development',
     'Design',
     'Testing',
-    'Deployment',
     'Maintenance',
     'Research',
     'Project Management',

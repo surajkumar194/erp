@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp/bottomScreen/bottomemployee.dart';
 import 'package:erp/login/signup.dart';
+import 'package:erp/service/sing.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
@@ -49,13 +50,11 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
     });
 
     try {
-      // Sign in with email and password
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Check user's role from Firestore
       DocumentSnapshot userDoc = await _firestore
           .collection("users")
           .doc(userCredential.user!.uid)
@@ -66,7 +65,7 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
             .collection("Manager")
             .doc(userCredential.user!.uid)
             .get();
-        
+
         if (managerDoc.exists) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -77,9 +76,11 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
           await _auth.signOut();
           return;
         }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Email not found. Please signup first.", style: TextStyle(fontSize: 18.sp)),
+            content: Text("Email not found. Please signup first.",
+                style: TextStyle(fontSize: 18.sp)),
             backgroundColor: Colors.black,
             action: SnackBarAction(
               label: 'Sign Up',
@@ -109,9 +110,28 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
         return;
       }
 
-      // If all checks pass, navigate to employee dashboard
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => BottomNavigationBarWidget()));
+      // ✅ Approval check
+      bool isApproved = userDoc.get("isApproved") ?? false;
+      if (!isApproved) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Your account is not approved yet. Please contact admin.",
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            backgroundColor: Colors.black,
+          ),
+        );
+        await _auth.signOut();
+        return;
+      }
+
+      // If all checks pass
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => BottomNavigationBarWidget()));
     } on FirebaseAuthException catch (e) {
       String errorMessage;
       switch (e.code) {
@@ -151,9 +171,27 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Employee Login", style: TextStyle(fontSize: 18.sp)),
+        title: Text("Employee Login",
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            )),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.transparent, // Make background transparent
+        elevation: 0, // Optional: remove AppBar shadow
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                Color(0xffe7dcc0),
+                Color(0xff013148),
+              ],
+            ),
+          ),
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -163,7 +201,7 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
             children: [
               Image.asset("assets/4.webp", height: 18.h, fit: BoxFit.contain),
               SizedBox(height: 2.h),
-          
+
               // Email Input
               TextField(
                 controller: _emailController,
@@ -174,7 +212,7 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
                 ),
               ),
               SizedBox(height: 2.h),
-          
+
               // Password Input
               TextField(
                 controller: _passwordController,
@@ -184,7 +222,9 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
@@ -196,7 +236,7 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
                 ),
               ),
               SizedBox(height: 4.h),
-          
+
               // Login Button
               SizedBox(
                 width: double.infinity,
@@ -226,30 +266,37 @@ class _EmpoyeeLoginScreenState extends State<EmpoyeeLoginScreen> {
                         ? CircularProgressIndicator(color: Colors.white)
                         : Text(
                             "Login", // Changed from "Sign Up" to "Login"
-                            style: TextStyle(fontSize: 17.sp, color: Colors.white),
+                            style:
+                                TextStyle(fontSize: 17.sp, color: Colors.white),
                           ),
                   ),
                 ),
               ),
               SizedBox(height: 2.h),
-          
-              // Navigate to Sign-Up Screen
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SignupScreen()));
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Don't have an account?",
-                        style: TextStyle(fontSize: 16.sp, color: Colors.grey)),
-                    Text(" Sign Up",
-                        style: TextStyle(fontSize: 18.sp, color: Color(0xff120A8F))),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Don't have an account?",
+                    style: TextStyle(fontSize: 16.sp, color: Colors.grey),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SignupScreenfirst()),
+                      );
+                    },
+                    child: Text(
+                      " Sign Up",
+                      style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xff120A8F)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
