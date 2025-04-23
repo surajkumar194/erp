@@ -93,7 +93,8 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                   itemCount: employees.length,
                   itemBuilder: (context, index) {
                     final employee = employees[index];
-                    final tasks = employee['tasks'] as List<Map<String, dynamic>>;
+                    final tasks =
+                        employee['tasks'] as List<Map<String, dynamic>>;
 
                     return ExpansionTile(
                       leading: CircleAvatar(
@@ -102,52 +103,63 @@ class _ManagerChatScreenState extends State<ManagerChatScreen> {
                         child: employee['name'].isNotEmpty
                             ? Text(
                                 employee['name'][0].toUpperCase(),
-                                style: TextStyle(fontSize: 18.sp, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 20.sp, color: Colors.white),
                               )
                             : null,
                       ),
                       title: Text(
                         employee['name'],
-                        style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 20.sp, fontWeight: FontWeight.w900),
                       ),
                       subtitle: Text(
                         '${tasks.length} tasks assigned',
-                        style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                        style: TextStyle(fontSize: 17.sp, color: Colors.grey,fontWeight: FontWeight.w800),
                       ),
                       children: tasks.isEmpty
                           ? [
                               ListTile(
                                 title: Text(
                                   'No tasks assigned',
-                                  style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 17.sp, color: Colors.grey),
                                 ),
                               ),
                             ]
                           : tasks.map((task) {
                               return ListTile(
                                 title: Text(
-                                  'Task: ${task['client'] ?? 'N/A'}',
+                                  'Client: ${task['client'] ?? 'N/A'}',
                                   style: TextStyle(
-                                      fontSize: 16.sp, fontWeight: FontWeight.w500),
+                                      fontSize: 17.sp,
+                                      fontWeight: FontWeight.w800),
                                 ),
                                 subtitle: Text(
                                   'Submission Date: ${task['date'] ?? 'N/A'}',
-                                  style: TextStyle(fontSize: 14.sp, color: Colors.grey, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                      fontSize: 15.sp,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w700),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                trailing: const Icon(Icons.mark_unread_chat_alt,
-                                    color: Colors.green),
+                                trailing: Icon(
+                                  Icons.mark_unread_chat_alt,
+                                  color: Colors.green,
+                                  size: 22.sp,
+                                ),
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ChatConversationScreen(
+                                      builder: (context) =>
+                                          ChatConversationScreen(
                                         receiverId: employee['id'],
                                         receiverName: employee['name'],
                                         isManager: true,
-                                        ticketId: task['taskId'],    taskData: task, // 👈 Pass task data
-                                      
+                                        ticketId: task['taskId'],
+                                        taskData: task, // 👈 Pass task data
                                       ),
                                     ),
                                   );

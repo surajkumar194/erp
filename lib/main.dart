@@ -1,16 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp/bottomScreen/bottomemployee.dart';
 import 'package:erp/bottomScreen/bottommanager.dart';
-import 'package:erp/login/Login.dart';
 import 'package:erp/service/sing.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart'; // <-- Required for kIsWeb
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyB3x0RupYfE19rJbFYXgMpc-QljuTwZrnA",
+        authDomain: "erp-app-6eb85.firebaseapp.com",
+        projectId: "erp-app-6eb85",
+        storageBucket: "erp-app-6eb85.firebasestorage.app",
+        messagingSenderId: "343320367868",
+        appId: "1:343320367868:web:3f88440d11b94804c6bd79",
+        measurementId: "G-SBXMYEWED6",
+      ),
+    );
+  } else {
+    await Firebase.initializeApp();
+  }
+
   runApp(const MyApp());
 }
 
@@ -23,7 +39,7 @@ class MyApp extends StatelessWidget {
       builder: (context, orientation, deviceType) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: const EmpoyeeLoginScreen(),
+          home: const SplashScreen(),
           //ManagerLoginScreen
           //EmpoyeeLoginScreen
         );

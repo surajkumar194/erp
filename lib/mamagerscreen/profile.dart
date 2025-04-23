@@ -18,11 +18,6 @@ class managerprofile extends StatefulWidget {
 }
 
 class _managerprofileState extends State<managerprofile> {
-
-
-
-
-
   File? _image;
   final picker = ImagePicker();
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -52,7 +47,8 @@ class _managerprofileState extends State<managerprofile> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text("Select Image Source",
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                  style:
+                      TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
               SizedBox(height: 2.h),
               ListTile(
                 leading: Icon(Icons.camera, color: Colors.blue),
@@ -86,39 +82,42 @@ class _managerprofileState extends State<managerprofile> {
     }
   }
 
- void _showLogoutDialog() {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Logout", style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text("Are you sure you want to log out?"),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text("Cancel", style: TextStyle(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pop(context); // Close dialog
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const ManagerLoginScreen()),
-                (route) => false,
-              );
-            },
-            child: Text("Logout",
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      );
-    },
-  );
-}
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Logout", style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Text("Are you sure you want to log out?"),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.pop(context); // Close dialog
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ManagerLoginScreen()),
+                  (route) => false,
+                );
+              },
+              child: Text("Logout",
+                  style: TextStyle(
+                      color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _showDeleteAccountDialog() {
     showDialog(
@@ -127,9 +126,11 @@ class _managerprofileState extends State<managerprofile> {
         return AlertDialog(
           title: Text("Delete Account",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22.sp)),
-          content: Text("Are you sure you want to delete your account permanently? This action cannot be undone.",
+          content: Text(
+              "Are you sure you want to delete your account permanently? This action cannot be undone.",
               style: TextStyle(fontSize: 16.sp)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -164,10 +165,10 @@ class _managerprofileState extends State<managerprofile> {
         try {
           // Delete Firestore data
           await _firestore.collection("users").doc(user.uid).delete();
-          
+
           // Attempt to delete auth account
           await user.delete();
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("Account deleted successfully"),
@@ -234,73 +235,77 @@ class _managerprofileState extends State<managerprofile> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 3.h),
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 42.w,
-                      height: 20.h,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: _image != null
-                            ? DecorationImage(
-                                image: FileImage(_image!), fit: BoxFit.cover)
-                            : DecorationImage(
-                                image: AssetImage("assets/de.jpg"),
-                                fit: BoxFit.fill),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: _showImagePicker,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.red,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          padding: EdgeInsets.all(6),
-                          child: Icon(Icons.edit, color: Colors.white, size: 18.sp),
+           SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 3.h),
+              child: Column(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        width: 42.w,
+                        height: 20.h,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: _image != null
+                              ? DecorationImage(
+                                  image: FileImage(_image!), fit: BoxFit.cover)
+                              : DecorationImage(
+                                  image: AssetImage("assets/de.jpg"),
+                                  fit: BoxFit.fill),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 2.h),
-                Text("Profile Page",
-                    style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w500)),
-                SizedBox(height: 2.h),
-                _buildProfileOption(Icons.person_outline, "My Account", () {
-                  Navigator.push(
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _showImagePicker,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.red,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            padding: EdgeInsets.all(6),
+                            child: Icon(Icons.edit,
+                                color: Colors.white, size: 18.sp),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 2.h),
+                  Text("Profile Page",
+                      style: TextStyle(
+                          fontSize: 20.sp, fontWeight: FontWeight.w500)),
+                  SizedBox(height: 2.h),
+                  _buildProfileOption(Icons.person_outline, "My Account", () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => editprofilemanager(
+                                    onImageUpdated: (File? updatedImage) {
+                                  if (updatedImage != null) {
+                                    setState(() {
+                                      _image = updatedImage;
+                                    });
+                                  }
+                                })));
+                  }),
+                  _buildProfileOption(
+                      Icons.assignment_turned_in_sharp, "Attendance", () {
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => editprofilemanager(
-                              onImageUpdated: (File? updatedImage) {
-                                if (updatedImage != null) {
-                                  setState(() {
-                                    _image = updatedImage;
-                                  });
-                                }
-                              })));
-                }),
-                _buildProfileOption(Icons.assignment_turned_in_sharp, "Attendance",
-                    () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AttendanceScreen()),
-                  );
-                }),
-                _buildProfileOption(Icons.delete_forever, "Delete Account",
-                    _showDeleteAccountDialog),
-                _buildProfileOption(
-                    Icons.logout, "Log Out", _showLogoutDialog, true),
-              ],
+                          builder: (context) => const AttendanceScreen()),
+                    );
+                  }),
+                  _buildProfileOption(Icons.delete_forever, "Delete Account",
+                      _showDeleteAccountDialog),
+                  _buildProfileOption(
+                      Icons.logout, "Log Out", _showLogoutDialog, true),
+                ],
+              ),
             ),
           ),
           if (_isLoading)

@@ -421,13 +421,13 @@ if (task['timestamp'] != null && task['timestamp'] is Timestamp) {
                                             'Chat',
                                             style: TextStyle(
                                               fontSize: 18.sp,
-                                              color: Colors.blue,
+                                              color: Colors.black,
                                             ),
                                           ),
                                           Icon(
-                                            Icons.chat,
-                                            size: 22.sp,
-                                            color: Colors.blue,
+                                            Icons.mark_unread_chat_alt,
+                                  color: Colors.green,
+                                  size: 22.sp,
                                           ),
                                         ],
                                       ),

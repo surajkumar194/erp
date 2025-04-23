@@ -110,27 +110,31 @@ class _EmployeeChatScreenState extends State<EmployeeChatScreen> {
                               fontSize: 16.sp, fontWeight: FontWeight.w500),
                         ),
                         subtitle: Text(
-                          
-                 'Submission Date: ${task['date'] ?? ''}',
-                          style:
-                              TextStyle(fontSize: 14.sp, color: Colors.blueGrey,fontWeight: FontWeight.w500),
+                          'Submission Date: ${task['date'] ?? ''}',
+                          style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.blueGrey,
+                              fontWeight: FontWeight.w500),
                         ),
                         trailing: IconButton(
-                          icon: const Icon(Icons.message,),
+                          icon: const Icon(
+                           Icons.mark_unread_chat_alt,
+                                    color: Colors.green
+                          ),
                           onPressed: () {
                             final String? receiverId = task['managerId'];
                             final String? ticketId = task['taskId'];
                             final String managerName =
                                 task['managerName'] ?? 'Manager';
 
-                            print('Task Data: $task'); // Debug full task data
-                            print('managerId: $receiverId'); // Debug ID
+                            print('Task Data: $task');
+                            print('managerId: $receiverId');
 
                             if (receiverId == null || receiverId.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content:
-                                      Text('Manager ID is missing for this task.'),
+                                  content: Text(
+                                      'Manager ID is missing for this task.'),
                                 ),
                               );
                               return;
