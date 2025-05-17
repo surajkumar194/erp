@@ -1,19 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/bottomScreen/bottomemployee.dart';
-import 'package:erp/login/signup.dart';
+import 'package:erp/HR%20Screen/Hr.dashboard.dart';
 import 'package:erp/service/sing.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
-class EmployeeLoginScreen extends StatefulWidget {
-  const EmployeeLoginScreen({super.key});
+// All imports remain the same
+
+class HRLoginScreen extends StatefulWidget {
+  const HRLoginScreen({super.key});
 
   @override
-  State<EmployeeLoginScreen> createState() => _EmployeeLoginScreenState();
+  State<HRLoginScreen> createState() => _HRLoginScreenState();
 }
 
-class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
+class _HRLoginScreenState extends State<HRLoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -58,31 +59,14 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
       );
 
       DocumentSnapshot userDoc = await _firestore
-          .collection("users")
+          .collection("HR")
           .doc(userCredential.user!.uid)
           .get();
 
       if (!userDoc.exists) {
-        DocumentSnapshot managerDoc = await _firestore
-            .collection("Manager")
-            .doc(userCredential.user!.uid)
-            .get();
-
-        if (managerDoc.exists) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Managers cannot log in to the Employee portal."),
-              backgroundColor: Colors.red,
-            ),
-          );
-          await _auth.signOut();
-          return;
-        }
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Account not found. Please sign up first.",
-                style: TextStyle(fontSize: 18.sp)),
+            content: Text("Account not found. Please sign up first."),
             backgroundColor: Colors.black,
             action: SnackBarAction(
               label: 'Sign Up',
@@ -90,7 +74,7 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SignupScreen()),
+                  MaterialPageRoute(builder: (context) => const SignupScreenfirst()),
                 );
               },
             ),
@@ -101,10 +85,10 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
       }
 
       String role = userDoc.get("role");
-      if (role != "Employee") {
+      if (role != "HR") {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Only employees can access this portal."),
+            content: Text("Only HR can access this portal."),
             backgroundColor: Colors.red,
           ),
         );
@@ -112,7 +96,10 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
         return;
       }
 
-      bool isApproved = userDoc.get("isApproved") ?? false;
+      bool isApproved = userDoc.data().toString().contains('isApproved')
+          ? userDoc.get("isApproved")
+          : false;
+
       if (!isApproved) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -132,7 +119,7 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BottomNavigationBarWidget()),
+        MaterialPageRoute(builder: (context) => HRDashboardScreen()),
       );
     } on FirebaseAuthException catch (e) {
       String errorMessage;
@@ -170,10 +157,17 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Employee Login",
+        title: Text("HR Login",
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w700,

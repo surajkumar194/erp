@@ -67,7 +67,8 @@ class _TasksState extends State<Tasks> {
     } else {
       print('No user logged in');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No user logged in. Please log in again.')),
+        const SnackBar(
+            content: Text('No user logged in. Please log in again.')),
       );
     }
   }
@@ -93,9 +94,10 @@ class _TasksState extends State<Tasks> {
             ? data['name'] as String
             : 'Unknown Employee';
         String uid = doc.id;
-        String employeeId = data.containsKey('employeeId') && data['employeeId'] != null
-            ? data['employeeId'] as String
-            : uid;
+        String employeeId =
+            data.containsKey('employeeId') && data['employeeId'] != null
+                ? data['employeeId'] as String
+                : uid;
 
         tempEmployees.add({
           'name': name,
@@ -190,14 +192,15 @@ class _TasksState extends State<Tasks> {
                             setState(() {
                               selectedEmployee = value;
                               if (value != null) {
-                                bool isValid =
-                                    employees.any((emp) => emp['name'] == value);
+                                bool isValid = employees
+                                    .any((emp) => emp['name'] == value);
                                 if (!isValid) {
                                   print('Invalid employee selected: $value');
                                   selectedEmployee = null;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                        content: Text('Invalid employee selection')),
+                                        content:
+                                            Text('Invalid employee selection')),
                                   );
                                 } else {
                                   print('Selected employee: $value');
@@ -247,16 +250,20 @@ class _TasksState extends State<Tasks> {
                       return ListView(
                         padding: EdgeInsets.all(4.w),
                         children: tasks.map((task) {
-                       String formattedTimestamp = 'N/A';
-if (task['timestamp'] != null && task['timestamp'] is Timestamp) {
-  formattedTimestamp = DateFormat('dd MMM yyyy  |  hh:mm a')
-      .format((task['timestamp'] as Timestamp).toDate().toLocal());
-}
-
+                          String formattedTimestamp = 'N/A';
+                          if (task['timestamp'] != null &&
+                              task['timestamp'] is Timestamp) {
+                            formattedTimestamp =
+                                DateFormat('dd MMM yyyy  |  hh:mm a').format(
+                                    (task['timestamp'] as Timestamp)
+                                        .toDate()
+                                        .toLocal());
+                          }
 
                           // Safely find the employee's UID for the selected employee
                           String? employeeUid;
-                          if (selectedEmployee != null && employees.isNotEmpty) {
+                          if (selectedEmployee != null &&
+                              employees.isNotEmpty) {
                             try {
                               final employee = employees.firstWhere(
                                 (emp) => emp['name'] == selectedEmployee,
@@ -264,14 +271,16 @@ if (task['timestamp'] != null && task['timestamp'] is Timestamp) {
                               );
                               employeeUid = employee['uid'];
                               if (employeeUid == null) {
-                                print('No UID found for employee: $selectedEmployee');
+                                print(
+                                    'No UID found for employee: $selectedEmployee');
                               }
                             } catch (e) {
                               employeeUid = null;
                               print('Error finding employee UID: $e');
                             }
                           } else {
-                            print('No selected employee or empty employees list');
+                            print(
+                                'No selected employee or empty employees list');
                           }
 
                           return Card(
@@ -408,7 +417,9 @@ if (task['timestamp'] != null && task['timestamp'] is Timestamp) {
                                                     isManager: true,
                                                     ticketId: task['taskId'] ??
                                                         task['ticketId'] ??
-                                                        '',   taskData: task, // 👈 Pass task data
+                                                        '',
+                                                    taskData:
+                                                        task, // 👈 Pass task data
                                                   ),
                                                 ),
                                               );
@@ -426,8 +437,8 @@ if (task['timestamp'] != null && task['timestamp'] is Timestamp) {
                                           ),
                                           Icon(
                                             Icons.mark_unread_chat_alt,
-                                  color: Colors.green,
-                                  size: 22.sp,
+                                            color: Colors.green,
+                                            size: 22.sp,
                                           ),
                                         ],
                                       ),

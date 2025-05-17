@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erp/screen/EmployeeChatScreen.dart';
 import 'package:erp/screen/Profile.dart';
+import 'package:erp/screen/employee_leave.dart';
 import 'package:erp/screen/targets.dart';
 import 'package:erp/screen/work.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,6 +31,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         TaskScreen(),
         const EmployeeChatScreen(), // Updated to EmployeeChatScreen
         const Profile(),
+        EmployeeLeaveScreen(),
       ];
 
   List<String> get _titles => [
@@ -37,6 +39,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         "Targets",
         "Chating",
         "Profile",
+        "Leave",
       ];
 
   @override
@@ -143,63 +146,75 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
         ),
         centerTitle: true,
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+    drawer: Drawer(
+  child: ListView(
+    padding: EdgeInsets.zero,
+    children: [
+      DrawerHeader(
+        decoration: BoxDecoration(color: Color(0xffF1E9D2)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: Color(0xffF1E9D2)),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 4.h,
-                    backgroundImage: const AssetImage("assets/de.jpg"),
-                  ),
-                  SizedBox(height: 1.h),
-                  Text(
-                    _name.isNotEmpty ? _name : "Loading...",
-                    style: TextStyle(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue),
-                  ),
-                  Text(
-                    _email.isNotEmpty ? _email : "",
-                    style: TextStyle(fontSize: 17.sp, color: Colors.blue),
-                  ),
-                ],
+            CircleAvatar(
+              radius: 4.h,
+              backgroundImage: AssetImage("assets/de.jpg"),
+            ),
+            SizedBox(height: 1.h),
+            Text(
+              _name.isNotEmpty ? _name : "Loading...",
+              style: TextStyle(
+                fontSize: 17.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.work),
-              title: const Text('My Work'),
-              onTap: () => _onDrawerItemSelected(0),
-            ),
-            ListTile(
-              leading: const Icon(Icons.business),
-              title: const Text('Targets'),
-              onTap: () => _onDrawerItemSelected(1),
-            ),
-            ListTile(
-              leading: const Icon(Icons.chat),
-              title: const Text('Manager message'),
-              onTap: () => _onDrawerItemSelected(2),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profile'),
-              onTap: () => _onDrawerItemSelected(3),
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: _showLogoutDialog,
+            Text(
+              _email.isNotEmpty ? _email : "",
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: Colors.blue,
+              ),
             ),
           ],
         ),
       ),
+
+      // Drawer Items
+      ListTile(
+        leading: Icon(Icons.work),
+        title: Text('My Work'),
+        onTap: () => _onDrawerItemSelected(0),
+      ),
+      ListTile(
+        leading: Icon(Icons.business),
+        title: Text('Targets'),
+        onTap: () => _onDrawerItemSelected(1),
+      ),
+      ListTile(
+        leading: Icon(Icons.chat),
+        title: Text('Manager Message'),
+        onTap: () => _onDrawerItemSelected(2),
+      ),
+      ListTile(
+        leading: Icon(Icons.person),
+        title: Text('Profile'),
+        onTap: () => _onDrawerItemSelected(3),
+      ),
+
+      Divider(),
+
+      ListTile(
+        leading: Icon(Icons.logout, color: Colors.red),
+        title: Text(
+          'Logout',
+          style: TextStyle(color: Colors.red),
+        ),
+        onTap: _showLogoutDialog,
+      ),
+    ],
+  ),
+),
+
       body: _auth.currentUser == null
           ? const Center(child: Text("Please log in"))
           : _pages[_currentIndex],
@@ -225,6 +240,7 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
             icon: Icon(Icons.business, size: 21),
             label: 'Targets',
           ),
+          
           BottomNavigationBarItem(
             icon: Icon(Icons.chat, size: 21),
             label: 'Chating',
@@ -232,6 +248,10 @@ class _BottomNavigationBarWidgetState extends State<BottomNavigationBarWidget> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person, size: 21),
             label: 'Profile',
+          ),
+           BottomNavigationBarItem(
+            icon: Icon(Icons.leave_bags_at_home, size: 21),
+            label: 'Leave',
           ),
         ],
       ),

@@ -58,7 +58,7 @@ class _LoginbothState extends State<Loginboth> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const EmpoyeeLoginScreen(),
+                    builder: (context) => const EmployeeLoginScreen(),
                   ),
                 );
               },

@@ -1,11 +1,10 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:erp/aftersplash/login.dart';
-import 'package:erp/login/Login.dart';
 import 'package:erp/profile/EditProfileScreen.dart';
 import 'package:erp/profile/attendance.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sizer/sizer.dart';
@@ -30,10 +29,31 @@ class _ProfileState extends State<Profile> {
     _loadProfileImage();
   }
 
+  // Load the profile image from Firestore
   Future<void> _loadProfileImage() async {
-    // Add logic here to load profile image from Firebase Storage if implemented
-  }
+  User? user = _auth.currentUser;
+  if (user != null) {
+    DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
 
+    // Check if the 'imageUrl' field exists in the document
+    if (userDoc.exists && userDoc.data() != null) {
+      var data = userDoc.data() as Map<String, dynamic>;
+
+      // If 'imageUrl' exists, use it, otherwise use a default image
+      String imageUrl = data['imageUrl'] ?? '';
+      setState(() {
+        _image = imageUrl.isNotEmpty ? File(imageUrl) : null; // Default image or null
+      });
+    } else {
+      // Handle the case where the document does not exist or doesn't have the 'imageUrl' field
+      setState(() {
+        _image = null; // No image available, or use a default one
+      });
+    }
+  }
+}
+
+  // Show bottom sheet to choose image source (Camera or Gallery)
   void _showImagePicker() {
     showModalBottomSheet(
       context: context,
@@ -72,84 +92,19 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  // Pick an image from the camera or gallery
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
       });
+      _uploadImageToFirebase(pickedFile);
     }
   }
 
-  void _showLogoutDialog() {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Logout", style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text("Are you sure you want to log out?"),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text("Cancel", style: TextStyle( fontSize: 17.sp,fontWeight: FontWeight.w800,
-              color: Colors.black)),
-          ),
-          TextButton(
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pop(context); // Close dialog
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const EmpoyeeLoginScreen()),
-                (route) => false,
-              );
-            },
-            child: Text("Logout",
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900, fontSize: 17.sp)),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-  void _showDeleteAccountDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Delete Account",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22.sp)),
-          content: Text("Are you sure you want to delete your account permanently? This action cannot be undone.",
-              style: TextStyle(fontSize: 16.sp)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel",
-                  style: TextStyle(color: Colors.blue, fontSize: 18.sp)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _deleteAccount();
-              },
-              child: Text("Delete",
-                  style: TextStyle(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.sp)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _deleteAccount() async {
+  // Upload the image to Firebase Storage and update Firestore
+  Future<void> _uploadImageToFirebase(XFile pickedFile) async {
     setState(() {
       _isLoading = true;
     });
@@ -157,71 +112,90 @@ class _ProfileState extends State<Profile> {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        try {
-          // Delete Firestore data
-          await _firestore.collection("users").doc(user.uid).delete();
-          
-          // Attempt to delete auth account
-          await user.delete();
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Account deleted successfully"),
-              backgroundColor: Colors.green,
-            ),
-          );
+        // Upload the image to Firebase Storage
+        String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+        Reference storageRef = FirebaseStorage.instance.ref().child('profile_images/$fileName');
+        await storageRef.putFile(File(pickedFile.path));
 
-          setState(() {
-            _image = null;
-          });
+        // Get the URL of the uploaded image
+        String imageUrl = await storageRef.getDownloadURL();
 
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => Login()),
-            (Route<dynamic> route) => false,
-          );
-        } on FirebaseAuthException catch (e) {
-          if (e.code == 'requires-recent-login') {
-         
-            await _auth.signOut();
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => Login()),
-              (Route<dynamic> route) => false,
-            );
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Please log in again to delete your account"),
-                backgroundColor: Colors.orange,
-              ),
-            );
-            return;
-          }
-          rethrow;
-        }
-      } else {
-        throw Exception("No user logged in");
+        // Update Firestore with the new image URL
+        await _firestore.collection('users').doc(user.uid).update({
+          'imageUrl': imageUrl,
+          
+        });
+
+        setState(() {
+          _image = File(pickedFile.path); // Update the image locally
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Profile image updated successfully!"),
+          backgroundColor: Colors.green,
+        ));
       }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Error deleting account: ${e.message}';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-        ),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to delete account: ${e.toString()}"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Failed to upload image: $e"),
+        backgroundColor: Colors.red,
+      ));
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  // Handle account deletion (for demonstration)
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Delete Account"),
+        content: Text("Are you sure you want to delete your account?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              // Delete account logic here
+            },
+            child: Text("Delete"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Handle logout (for demonstration)
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Log Out"),
+        content: Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _auth.signOut();
+              Navigator.pop(context);
+            },
+            child: Text("Log Out"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -272,30 +246,30 @@ class _ProfileState extends State<Profile> {
                     style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w500)),
                 SizedBox(height: 2.h),
                 _buildProfileOption(Icons.person_outline, "My Account", () {
-                  Navigator.push(
+               Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => EditProfileScreen(
+      onImageUpdated: (File? updatedImage) {
+        if (updatedImage != null) {
+          setState(() {
+            _image = updatedImage;  // Update the profile image with the selected one
+          });
+        }
+      },
+    ),
+  ),
+);
+                }),
+                _buildProfileOption(Icons.assignment_turned_in_sharp, "Attendance", () {
+                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => EditProfileScreen(
-                              onImageUpdated: (File? updatedImage) {
-                                if (updatedImage != null) {
-                                  setState(() {
-                                    _image = updatedImage;
-                                  });
-                                }
-                              })));
+                          builder: (context) => const AttendanceScreen()),
+                    );
                 }),
-                _buildProfileOption(Icons.assignment_turned_in_sharp, "Attendance",
-                    () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AttendanceScreen()),
-                  );
-                }),
-                _buildProfileOption(Icons.delete_forever, "Delete Account",
-                    _showDeleteAccountDialog),
-                _buildProfileOption(
-                    Icons.logout, "Log Out", _showLogoutDialog, true),
+                _buildProfileOption(Icons.delete_forever, "Delete Account", _showDeleteAccountDialog),
+                _buildProfileOption(Icons.logout, "Log Out", _showLogoutDialog, true),
               ],
             ),
           ),
@@ -309,8 +283,8 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Widget _buildProfileOption(IconData icon, String title, VoidCallback? onTap,
-      [bool isLogout = false]) {
+  // Helper widget to build profile options
+  Widget _buildProfileOption(IconData icon, String title, VoidCallback? onTap, [bool isLogout = false]) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 1.h),
       child: ListTile(

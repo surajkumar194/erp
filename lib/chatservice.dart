@@ -116,7 +116,7 @@ String _formatTimestamp(Timestamp timestamp) {
     if (image == null || currentUser == null) return;
 
     setState(() {
-      isSendingMessage = true; // Set sending status to true
+      isSendingMessage = true; 
     });
 
      try {
@@ -177,24 +177,6 @@ String _formatTimestamp(Timestamp timestamp) {
   }
 
 
-  // Widget _buildInfoRow(String title, String value, Color color, {bool isBold = false}) {
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(vertical: 0.5.h),
-  //     child: Row(
-  //       children: [
-  //         Text('$title: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp)),
-  //         Text(
-  //           value,
-  //           style: TextStyle(
-  //             color: color,
-  //             fontSize: 13.sp,
-  //             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {

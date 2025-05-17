@@ -22,6 +22,7 @@ class _EmployeeChatScreenState extends State<EmployeeChatScreen> {
   void initState() {
     super.initState();
     _fetchAssignedTasks();
+    _formatTimestamp;
   }
 
   Future<void> _fetchAssignedTasks() async {

@@ -104,7 +104,7 @@ class _SignupScreenState extends State<SignupScreen> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const EmpoyeeLoginScreen()),
+                  MaterialPageRoute(builder: (context) => const EmployeeLoginScreen()),
                 );
               },
             ),
@@ -140,7 +140,7 @@ class _SignupScreenState extends State<SignupScreen> {
 );
 Navigator.pushReplacement(
   context,
-  MaterialPageRoute(builder: (context) => const EmpoyeeLoginScreen()),
+  MaterialPageRoute(builder: (context) => const EmployeeLoginScreen()),
 );
     } on FirebaseAuthException catch (e) {
       String errorMessage;

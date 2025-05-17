@@ -167,6 +167,7 @@ class _ManagerHomeState extends State<ManagerHome> {
           _priority = null;
           _selectedDate = null;
           employees = [];
+           _selectDate;
         });
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

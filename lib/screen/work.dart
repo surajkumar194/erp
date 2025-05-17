@@ -20,6 +20,7 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
     super.initState();
     fetchEmployeeTasks();
   }
+
   Future<void> fetchEmployeeTasks() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
@@ -60,6 +61,7 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
       });
     }
   }
+
   Future<String> _getEmployeeNameFromFirestore(String uid) async {
     try {
       DocumentSnapshot doc =
@@ -70,16 +72,16 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
       return "Unknown";
     }
   }
- String _formatTimestamp(dynamic timestamp) {
-  if (timestamp == null || timestamp is! Timestamp) return "N/A";
-  DateTime dt = timestamp.toDate();
-  return DateFormat('dd/MM/yyyy | hh:mm a').format(dt);
-}
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null || timestamp is! Timestamp) return "N/A";
+    DateTime dt = timestamp.toDate();
+    return DateFormat('dd/MM/yyyy | hh:mm a').format(dt);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : tasks.isEmpty
@@ -115,7 +117,6 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
                               task['taskDetails'] ?? 'N/A',
                               Colors.black87,
                             ),
-                    
                             if (task['imageUrl'] != null) ...[
                               Padding(
                                 padding: EdgeInsets.symmetric(vertical: 1.h),
@@ -146,7 +147,7 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
                               isBold: true,
                             ),
                             Divider(),
-                              _buildInfoRow(
+                            _buildInfoRow(
                               "Assign Date/Time",
                               _formatTimestamp(task['timestamp']),
                               Colors.brown,
@@ -156,7 +157,6 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
                               task['date'] ?? 'N/A',
                               Colors.purple,
                             ),
-                          
                           ],
                         ),
                       ),
@@ -165,6 +165,7 @@ class _EmployeeProfileState extends State<EmployeeProfile> {
                 ),
     );
   }
+
   Widget _buildInfoRow(String label, String value, Color color,
       {bool isBold = false}) {
     return Padding(

@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:erp/HR%20Screen/Hr_Login.dart';
 import 'package:erp/bottomScreen/bottomemployee.dart';
 import 'package:erp/bottomScreen/bottommanager.dart';
 import 'package:erp/service/sing.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart'; // <-- Required for kIsWeb
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
       builder: (context, orientation, deviceType) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: const SplashScreen(),
+          home: HRLoginScreen(),
           //ManagerLoginScreen
           //EmpoyeeLoginScreen
         );
@@ -135,3 +136,27 @@ class AuthWrapper extends StatelessWidget {
 
 
 
+
+
+
+
+// rules_version = '2';
+// service cloud.firestore {
+//   match /databases/{database}/documents {
+//     // General rule for authenticated users (fallback, can be restrictive based on your needs)
+//     match /{document=**} {
+//       allow read, write: if request.auth != null;
+//     }
+
+//     // Rule for users collection
+//     match /users/{userId} {
+//       // Allow read and write for users to access their own data
+//       allow read, write: if request.auth != null && request.auth.uid == userId;
+
+//       // Allow updating user data, but prevent role change
+//       allow update: if request.auth != null && request.auth.uid == userId 
+//         && request.resource.data.role == resource.data.role; // Prevent role changes by users
+
+//       // Allow employees to read data (or fetch employee data)
+//       allow read: if request.auth != null && resource.data.role == 'Employee';
+//     }

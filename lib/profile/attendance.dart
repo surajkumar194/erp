@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +17,8 @@ class AttendanceScreen extends StatefulWidget {
 }
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
+  List<CameraDescription>? _cameras;
+  int _selectedCameraIndex = 0;
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
   File? _capturedImage;
@@ -22,7 +27,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   final double allowedLatitude = 30.9009329;
   final double allowedLongitude = 75.8323451;
-  final double allowedRadius = 500; // 500 meters allowed radius
+  final double allowedRadius = 500;
 
   Map<int, String> attendanceRecords = {};
   Map<int, String> lateTimings = {};
@@ -35,19 +40,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeFirebase();
+  }
+
+  Future<void> _initializeFirebase() async {
+    await Firebase.initializeApp();
     _initializeCamera();
   }
 
-  Future<void> _initializeCamera() async {
-    final cameras = await availableCameras();
-    if (cameras.isEmpty) {
-      print("No cameras found");
+  Future<void> _initializeCamera([int cameraIndex = 0]) async {
+    _cameras = await availableCameras();
+    if (_cameras == null || _cameras!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No camera found")),
+      );
       return;
     }
 
-    final firstCamera = cameras.first;
+    _selectedCameraIndex = cameraIndex;
     _controller = CameraController(
-      firstCamera,
+      _cameras![_selectedCameraIndex],
       ResolutionPreset.medium,
       enableAudio: false,
     );
@@ -59,6 +71,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     } catch (e) {
       print("Camera Initialization Error: $e");
     }
+  }
+
+  void _switchCamera() {
+    if (_cameras == null || _cameras!.isEmpty) return;
+    int newIndex = (_selectedCameraIndex + 1) % _cameras!.length;
+    _initializeCamera(newIndex);
   }
 
   Future<void> _captureAttendance() async {
@@ -80,8 +98,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         DateTime now = DateTime.now();
         int day = now.day;
 
+        File imageFile = File(image.path);
+        String fileName = '${DateFormat('yyyyMMdd_HHmmss').format(now)}.jpg';
+
+        final ref = FirebaseStorage.instance.ref().child('attendance_images').child(fileName);
+        await ref.putFile(imageFile);
+        String downloadUrl = await ref.getDownloadURL();
+
+        await FirebaseFirestore.instance.collection('attendance').add({
+          'imageUrl': downloadUrl,
+          'timestamp': now.toIso8601String(),
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+          'status': startTimes.containsKey(day) ? 'End' : 'Start',
+          'day': day,
+          'month': selectedMonth,
+          'year': selectedYear,
+        });
+
         setState(() {
-          _capturedImage = File(image.path);
+          _capturedImage = imageFile;
           _dateTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(now);
           _location = "Lat: ${position.latitude}, Long: ${position.longitude}";
 
@@ -168,7 +204,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             child: Center(
               child: ClipOval(
                 child: Container(
-                  width: 250, // Circular size
+                  width: 250,
                   height: 250,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -188,14 +224,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
           ElevatedButton(
             onPressed: _captureAttendance,
             child: const Text("Capture Attendance"),
           ),
-
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: _switchCamera,
+            child: const Text("Switch Camera"),
+          ),
+          const SizedBox(height: 20),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -213,7 +252,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   rows: List.generate(31, (index) {
                     int day = index + 1;
                     return DataRow(cells: [
-                      DataCell(Text('$day/${DateFormat('MM/yyyy').format(DateTime(int.parse(selectedYear), DateFormat('MMMM', 'en_US').parse(selectedMonth).month))}')),
+                      DataCell(Text('$day/${DateFormat('MM/yyyy').format(DateTime(int.parse(selectedYear), DateFormat('MMMM').parse(selectedMonth).month))}')),
                       DataCell(Text(attendanceRecords[day] ?? 'Absent')),
                       DataCell(Text(startTimes[day] ?? 'N/A')),
                       DataCell(Text(endTimes[day] ?? 'N/A')),
